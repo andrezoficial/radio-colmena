@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Radio, Send, Music, Users, Calendar, Clock, Instagram, Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, MessageSquare } from 'lucide-react';
 
 export default function EmisionaOnline() {
@@ -12,6 +12,7 @@ export default function EmisionaOnline() {
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
   const [playerLoaded, setPlayerLoaded] = useState(false);
+  const playerContainerRef = useRef(null);
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -38,45 +39,25 @@ export default function EmisionaOnline() {
 
   // Cargar el reproductor embebido de MyRadioStream
   useEffect(() => {
-    const loadPlayer = () => {
-      const playerContainer = document.getElementById('myradio-player-container');
-      if (!playerContainer) return;
+    if (!playerContainerRef.current) return;
 
-      // Limpiar cualquier script anterior
-      const existingScript = document.getElementById('myradio-embed-script');
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-      }
-
-      // Limpiar el contenedor
-      playerContainer.innerHTML = '';
-
-      // Crear y cargar el script específico de Radio Colmena
-      const script = document.createElement('script');
-      script.id = 'myradio-embed-script';
-      script.src = '//myradiostream.com/embed/radiocolmena';
-      script.async = true;
-      
-      script.onload = () => {
-        console.log('✅ Script de Radio Colmena cargado correctamente');
-        setPlayerLoaded(true);
-      };
-      
-      script.onerror = () => {
-        console.error('❌ Error al cargar el script de MyRadioStream');
-        setPlayerLoaded(false);
-      };
-
-      // Insertar el script directamente en el contenedor
-      playerContainer.appendChild(script);
+    const script = document.createElement('script');
+    script.src = '//myradiostream.com/embed/radiocolmena';
+    script.async = true;
+    
+    script.onload = () => {
+      console.log('✅ Script de Radio Colmena cargado correctamente');
+      setPlayerLoaded(true);
+    };
+    
+    script.onerror = () => {
+      console.error('❌ Error al cargar el script de MyRadioStream');
+      setPlayerLoaded(false);
     };
 
-    // Esperar a que el DOM esté listo
-    const timer = setTimeout(loadPlayer, 500);
+    playerContainerRef.current.appendChild(script);
 
-    return () => {
-      clearTimeout(timer);
-    };
+    // No hacemos cleanup para evitar el error de removeChild
   }, []);
 
   useEffect(() => {
@@ -194,14 +175,14 @@ export default function EmisionaOnline() {
 
                       {/* Contenedor específico para MyRadioStream */}
                       <div 
-                        id="myradio-player-container"
+                        ref={playerContainerRef}
                         className="w-full min-h-[200px] bg-black/30 rounded-lg p-4"
                       >
                         {!playerLoaded && (
                           <div className="text-center py-8">
                             <div className="loader mx-auto mb-4"></div>
                             <p className="text-blue-300">Cargando reproductor...</p>
-                            <p className="text-xs text-blue-400 mt-2">Script de embed en carga...</p>
+                            <p className="text-xs text-blue-400 mt-2">Iniciando transmisión...</p>
                           </div>
                         )}
                       </div>
