@@ -16,8 +16,8 @@ export default function EmisionaOnline() {
   const audioRef = useRef(null);
   const playerContainerRef = useRef(null);
   
-  // URL del stream HTTPS - Compatible con sitios seguros
-  const streamUrl = 'https://radiocolmena.radiostream123.com/';
+  // URL del stream correcta extraída del código HTML
+  const streamUrl = 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809';
   const playerPage = 'https://radiocolmena.radiostream123.com/';
 
   const programas = [
@@ -78,12 +78,20 @@ export default function EmisionaOnline() {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        audioRef.current.play().catch(err => {
-          console.error('Error al reproducir:', err);
-          // Si falla, abrir en ventana nueva como alternativa
-          window.open(playerPage, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no');
-        });
-        setIsPlaying(true);
+        // Intentar reproducir con manejo de errores mejorado
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              setIsPlaying(true);
+            })
+            .catch(err => {
+              console.error('Error al reproducir:', err);
+              // Si falla la reproducción automática, abrir ventana nueva
+              alert('Por favor, permite la reproducción de audio o usa el botón de abrir en ventana nueva');
+            });
+        }
       }
     }
   };
@@ -181,7 +189,8 @@ export default function EmisionaOnline() {
                       {/* Reproductor de audio embebido */}
                       <audio 
                         ref={audioRef}
-                        preload="none"
+                        preload="metadata"
+                        crossOrigin="anonymous"
                         className="hidden"
                       >
                         <source src={streamUrl} type="audio/mpeg" />
@@ -228,27 +237,41 @@ export default function EmisionaOnline() {
                           ✅ <strong>Reproductor HTTPS Seguro</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Streaming en alta calidad desde servidor seguro
+                          Streaming desde uk17freenew.listen2myradio.com
                         </p>
+                      </div>
+                      
+                      {/* Nota importante */}
+                      <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                        <p className="text-sm text-yellow-200 font-bold mb-2">
+                          ⚠️ Nota importante
+                        </p>
+                        <p className="text-xs text-yellow-100 mb-2">
+                          Algunos navegadores bloquean la reproducción automática de audio. Si no escuchas nada:
+                        </p>
+                        <ul className="text-xs text-yellow-100 list-disc list-inside space-y-1">
+                          <li>Asegúrate de hacer clic en el botón Play</li>
+                          <li>Verifica que el volumen de tu dispositivo esté activo</li>
+                          <li>Si persiste el problema, usa el botón "Abrir en ventana nueva"</li>
+                        </ul>
                       </div>
                       
                       {/* Controles adicionales */}
                       <div className="mt-4 p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200 font-bold mb-2">
-                          🎵 Reproductor integrado
-                        </p>
-                        <p className="text-xs text-blue-100 mb-3">
-                          Ahora puedes escuchar directamente desde esta página sin ventanas adicionales. 
-                          El servidor usa HTTPS para garantizar una experiencia segura.
+                        <p className="text-sm text-blue-200 font-bold mb-3">
+                          🎵 Opciones de reproducción
                         </p>
                         <a 
                           href={playerPage}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-2 px-4 rounded-lg font-semibold text-center hover:opacity-90 transition-opacity text-sm"
+                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 px-4 rounded-lg font-semibold text-center hover:opacity-90 transition-opacity"
                         >
-                          🚀 Abrir reproductor en ventana nueva (opcional)
+                          🚀 Abrir reproductor oficial en ventana nueva
                         </a>
+                        <p className="text-xs text-blue-300 mt-2 text-center">
+                          Garantiza la mejor experiencia de audio
+                        </p>
                       </div>
                     </div>
                   </div>
