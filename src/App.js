@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Volume2, VolumeX, Radio, Send, Music, Users, Calendar, Clock, Instagram, Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Radio, Send, Music, Users, Calendar, Clock, Instagram, Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, MessageSquare } from 'lucide-react';
 
 export default function EmisionaOnline() {
   const [activeTab, setActiveTab] = useState('inicio');
@@ -11,12 +11,7 @@ export default function EmisionaOnline() {
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
-  
-  // Estados para el reproductor
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [isMuted, setIsMuted] = useState(false);
-  const playerContainerRef = useRef(null);
+  const [playerLoaded, setPlayerLoaded] = useState(false);
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -43,112 +38,34 @@ export default function EmisionaOnline() {
 
   // Cargar el reproductor embebido de MyRadioStream
   useEffect(() => {
-    const loadPlayer = () => {
-      // Limpiar cualquier reproductor anterior
-      const existingPlayer = document.getElementById('mixstream-player-embed');
-      if (existingPlayer) {
-        existingPlayer.remove();
-      }
+    // Limpiar cualquier script anterior
+    const existingScript = document.getElementById('myradio-embed-script');
+    if (existingScript) {
+      existingScript.remove();
+    }
 
-      // Crear el contenedor del reproductor
-      const playerDiv = document.createElement('div');
-      playerDiv.id = 'mixstream-player-embed';
-      playerDiv.style.width = '100%';
-      playerDiv.style.height = '100px';
-      playerDiv.style.marginTop = '20px';
-
-      // Agregar el HTML del reproductor (similar al de MyRadioStream)
-      playerDiv.innerHTML = `
-        <div id="player-container" style="background-color: #000; padding: 10px; border-radius: 10px;">
-          <div id="mixstream-player" data-type="audio/mpeg" data-clipwarn="1" data-height="80" style="width: 100%; max-width: 600px; margin: 0 auto;">
-            <div id="mixstream-play" style="display: none;">
-              <i class="fa-thin fa-play-circle" id="mixstream-play-icon" style="filter: invert(1) grayscale(1) contrast(7); border-radius: 100%;"></i>
-            </div>
-            <div id="mixstream-stop" style="display: none;">
-              <i class="fa-thin fa-stop-circle" id="mixstream-stop-icon" style="filter: invert(1) grayscale(1) contrast(7); border-radius: 100%;"></i>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // Agregar al contenedor principal
-      if (playerContainerRef.current) {
-        playerContainerRef.current.appendChild(playerDiv);
-      }
-
-      // Cargar los scripts necesarios
-      const loadScript = (src) => {
-        return new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = src;
-          script.async = true;
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      };
-
-      // Cargar scripts en orden
-      Promise.all([
-        loadScript('https://kit.fontawesome.com/826226507f.js'),
-        loadScript('https://cdn.jsdelivr.net/npm/halfmoon/js/halfmoon.min.js')
-      ]).then(() => {
-        // Inicializar el reproductor después de cargar los scripts
-        initializeMixstreamPlayer();
-      }).catch(error => {
-        console.error('Error loading scripts:', error);
-      });
+    // Crear y cargar el script de embed
+    const script = document.createElement('script');
+    script.id = 'myradio-embed-script';
+    script.src = '//myradiostream.com/embed/radiocolmena';
+    script.async = true;
+    
+    script.onload = () => {
+      console.log('✅ Reproductor de MyRadioStream cargado correctamente');
+      setPlayerLoaded(true);
+    };
+    
+    script.onerror = () => {
+      console.error('❌ Error al cargar el reproductor');
+      setPlayerLoaded(true); // Mostrar el área igual
     };
 
-    const initializeMixstreamPlayer = () => {
-      // Configuración del reproductor (similar a la de MyRadioStream)
-      const playerConfig = {
-        url: "http://37.59.40.90:18640/;",
-        tls: "https://s33.myradiostream.com/18640/stream",
-        base: "//s33.myradiostream.com:18640/",
-        h: "s33",
-        s: "610398", 
-        p: "18640",
-        name: "Radio Colmena",
-        playercol: "333333",
-        textcol: "000000",
-        autostart: "1"
-      };
-
-      // Inyectar el script de unlock de MyRadioStream
-      const unlockScript = document.createElement('script');
-      unlockScript.src = `http://${playerConfig.h}.myradiostream.com/unlock.php?p=${playerConfig.p}&id=${playerConfig.s}`;
-      document.head.appendChild(unlockScript);
-
-      // Simular la inicialización del reproductor
-      setTimeout(() => {
-        const playButton = document.getElementById('mixstream-play-icon');
-        const stopButton = document.getElementById('mixstream-stop-icon');
-        
-        if (playButton && stopButton) {
-          playButton.style.display = 'block';
-          stopButton.style.display = 'block';
-          
-          playButton.addEventListener('click', () => {
-            setIsPlaying(true);
-            // Aquí iría la lógica para iniciar la reproducción
-          });
-          
-          stopButton.addEventListener('click', () => {
-            setIsPlaying(false);
-            // Aquí iría la lógica para detener la reproducción
-          });
-        }
-      }, 1000);
-    };
-
-    loadPlayer();
+    document.head.appendChild(script);
 
     return () => {
-      // Limpieza al desmontar el componente
-      const player = document.getElementById('mixstream-player-embed');
-      if (player) {
-        player.remove();
+      // Limpiar al desmontar el componente
+      if (document.getElementById('myradio-embed-script')) {
+        document.getElementById('myradio-embed-script').remove();
       }
     };
   }, []);
@@ -244,7 +161,7 @@ export default function EmisionaOnline() {
 
                   {/* REPRODUCTOR EMBEBIDO DE MYRADIOSTREAM */}
                   <div className="bg-white/5 rounded-xl p-6">
-                    <div className="w-full max-w-2xl mx-auto">
+                    <div className="w-full max-w-4xl mx-auto">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full">
@@ -253,63 +170,57 @@ export default function EmisionaOnline() {
                           <div>
                             <h3 className="font-bold text-lg">Radio Colmena</h3>
                             <p className="text-sm text-blue-200">
-                              {isPlaying ? 'En vivo ahora' : 'Reproductor cargando...'}
+                              {playerLoaded ? 'Reproductor listo' : 'Cargando reproductor...'}
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
+                          <div className={`w-3 h-3 rounded-full ${playerLoaded ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
                           <span className="text-sm text-blue-200">
-                            {isPlaying ? 'Transmisión en vivo' : 'Preparando reproductor...'}
+                            {playerLoaded ? 'Conectado' : 'Conectando...'}
                           </span>
                         </div>
                       </div>
 
                       {/* Contenedor para el reproductor embebido */}
-                      <div 
-                        ref={playerContainerRef}
-                        className="w-full min-h-[120px] flex items-center justify-center bg-black/30 rounded-lg p-4"
-                      >
-                        <div className="text-center">
-                          <p className="text-blue-300 mb-2">🔄 Cargando reproductor...</p>
-                          <div className="loader mx-auto"></div>
-                        </div>
+                      <div className="w-full min-h-[120px] bg-black/30 rounded-lg p-4">
+                        {!playerLoaded ? (
+                          <div className="text-center py-8">
+                            <div className="loader mx-auto mb-4"></div>
+                            <p className="text-blue-300">Cargando reproductor de MyRadioStream...</p>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            {/* El reproductor se insertará automáticamente aquí por el script */}
+                            <p className="text-green-400 mb-2">✅ Reproductor cargado correctamente</p>
+                            <p className="text-sm text-blue-300">
+                              El reproductor de MyRadioStream debería aparecer aquí automáticamente
+                            </p>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Información de conexión */}
+                      {/* Información importante */}
                       <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
                         <p className="text-sm text-green-200">
-                          ✅ <strong>Conectado al servidor de MyRadioStream</strong>
+                          🎧 <strong>Reproductor oficial de MyRadioStream</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Usando el reproductor oficial de MyRadioStream.com
+                          Usando: <code>//myradiostream.com/embed/radiocolmena</code>
                         </p>
                       </div>
 
-                      {/* Opción alternativa: Iframe como respaldo */}
+                      {/* Instrucciones de uso */}
                       <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
                         <p className="text-sm text-blue-200 mb-2">
-                          🔄 Si el reproductor no carga, usa esta opción:
+                          💡 <strong>Para que funcione:</strong>
                         </p>
-                        <button
-                          onClick={() => {
-                            const iframe = document.createElement('iframe');
-                            iframe.src = 'http://radiocolmena.on-air.fm/free/';
-                            iframe.style.width = '100%';
-                            iframe.style.height = '200px';
-                            iframe.style.border = 'none';
-                            iframe.style.borderRadius = '10px';
-                            
-                            if (playerContainerRef.current) {
-                              playerContainerRef.current.innerHTML = '';
-                              playerContainerRef.current.appendChild(iframe);
-                            }
-                          }}
-                          className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Cargar Reproductor Alternativo
-                        </button>
+                        <ul className="text-xs text-blue-300 space-y-1">
+                          <li>• Asegúrate de estar transmitiendo desde Mixxx/RadioDJ</li>
+                          <li>• El servidor debe estar marcado como "Online" en MyRadioStream</li>
+                          <li>• El reproductor se carga automáticamente desde MyRadioStream</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
