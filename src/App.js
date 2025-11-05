@@ -39,25 +39,7 @@ export default function EmisionaOnline() {
 
   // Cargar el reproductor embebido de MyRadioStream
   useEffect(() => {
-    if (!playerContainerRef.current) return;
-
-    // Crear el reproductor embebido usando el widget de MyRadioStream
-    const playerHTML = `
-      <div style="text-align: center;">
-        <iframe 
-          src="http://s33.myradiostream.com:18640/player" 
-          width="100%" 
-          height="180" 
-          frameborder="0" 
-          scrolling="no"
-          style="border-radius: 8px; background: rgba(0,0,0,0.3);"
-        ></iframe>
-      </div>
-    `;
-
-    playerContainerRef.current.innerHTML = playerHTML;
     setPlayerLoaded(true);
-
   }, []);
 
   useEffect(() => {
@@ -173,18 +155,22 @@ export default function EmisionaOnline() {
                         </div>
                       </div>
 
-                      {/* Contenedor específico para MyRadioStream */}
+                      {/* Contenedor para el reproductor de MyRadioStream */}
                       <div 
                         ref={playerContainerRef}
                         className="w-full min-h-[200px] bg-black/30 rounded-lg p-4"
                       >
-                        {!playerLoaded && (
-                          <div className="text-center py-8">
-                            <div className="loader mx-auto mb-4"></div>
-                            <p className="text-blue-300">Cargando reproductor...</p>
-                            <p className="text-xs text-blue-400 mt-2">Iniciando transmisión...</p>
-                          </div>
-                        )}
+                        <div className="text-center">
+                          <iframe 
+                            src="http://s33.myradiostream.com:18640/player" 
+                            width="100%" 
+                            height="180" 
+                            frameBorder="0" 
+                            scrolling="no"
+                            style={{borderRadius: '8px', background: 'rgba(0,0,0,0.3)'}}
+                            title="Radio Colmena Player"
+                          />
+                        </div>
                       </div>
 
                       {/* Información */}
