@@ -39,11 +39,17 @@ export default function EmisionaOnline() {
   // Cargar el reproductor embebido de MyRadioStream
   useEffect(() => {
     const loadPlayer = () => {
+      const playerContainer = document.getElementById('myradio-player-container');
+      if (!playerContainer) return;
+
       // Limpiar cualquier script anterior
       const existingScript = document.getElementById('myradio-embed-script');
       if (existingScript && existingScript.parentNode) {
         existingScript.parentNode.removeChild(existingScript);
       }
+
+      // Limpiar el contenedor
+      playerContainer.innerHTML = '';
 
       // Crear y cargar el script específico de Radio Colmena
       const script = document.createElement('script');
@@ -61,19 +67,15 @@ export default function EmisionaOnline() {
         setPlayerLoaded(false);
       };
 
-      // Insertar el script en el head del documento
-      document.head.appendChild(script);
+      // Insertar el script directamente en el contenedor
+      playerContainer.appendChild(script);
     };
 
     // Esperar a que el DOM esté listo
-    const timer = setTimeout(loadPlayer, 300);
+    const timer = setTimeout(loadPlayer, 500);
 
     return () => {
       clearTimeout(timer);
-      const script = document.getElementById('myradio-embed-script');
-      if (script && script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
     };
   }, []);
 
@@ -193,12 +195,13 @@ export default function EmisionaOnline() {
                       {/* Contenedor específico para MyRadioStream */}
                       <div 
                         id="myradio-player-container"
-                        className="w-full min-h-[120px] bg-black/30 rounded-lg flex items-center justify-center"
+                        className="w-full min-h-[200px] bg-black/30 rounded-lg p-4"
                       >
                         {!playerLoaded && (
                           <div className="text-center py-8">
                             <div className="loader mx-auto mb-4"></div>
                             <p className="text-blue-300">Cargando reproductor...</p>
+                            <p className="text-xs text-blue-400 mt-2">Script de embed en carga...</p>
                           </div>
                         )}
                       </div>
@@ -218,6 +221,22 @@ export default function EmisionaOnline() {
                         <p className="text-sm text-blue-200">
                           💡 <strong>Nota:</strong> Haz clic en el botón Play para comenzar a escuchar
                         </p>
+                        <p className="text-xs text-blue-300 mt-2">
+                          Si no aparece el reproductor después de unos segundos, intenta recargar la página
+                        </p>
+                      </div>
+                      
+                      {/* Opción alternativa con iframe */}
+                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+                        <p className="text-sm text-cyan-200 mb-3">
+                          🔄 <strong>Reproductor alternativo (iframe):</strong>
+                        </p>
+                        <iframe 
+                          src="https://myradiostream.com/radiocolmena/player"
+                          style={{width: '100%', height: '150px', border: 'none', borderRadius: '8px'}}
+                          allow="autoplay"
+                          title="Radio Colmena Player"
+                        />
                       </div>
                     </div>
                   </div>
