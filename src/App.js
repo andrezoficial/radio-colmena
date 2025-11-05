@@ -51,15 +51,16 @@ export default function EmisionaOnline() {
     const interval = setInterval(() => {
       setListeners(prev => prev + Math.floor(Math.random() * 3) - 1);
     }, 5000);
-    const submitRequest = () => {
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const submitRequest = () => {
     if (songRequest.name && songRequest.song) {
       alert('¡Solicitud enviada! La escucharemos pronto en Radio Colmena 🎵');
       setSongRequest({ name: '', song: '', artist: '', message: '' });
     }
   };
-
-  return () => clearInterval(interval);
-  }, []);
 
   const sendMessage = () => {
     if (newMessage.trim() && userName.trim()) {
