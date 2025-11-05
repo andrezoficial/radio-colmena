@@ -41,23 +41,23 @@ export default function EmisionaOnline() {
   useEffect(() => {
     if (!playerContainerRef.current) return;
 
-    const script = document.createElement('script');
-    script.src = 'https://myradiostream.com/embed/radiocolmena';
-    script.async = true;
-    
-    script.onload = () => {
-      console.log('✅ Script de Radio Colmena cargado correctamente');
-      setPlayerLoaded(true);
-    };
-    
-    script.onerror = () => {
-      console.error('❌ Error al cargar el script de MyRadioStream');
-      setPlayerLoaded(false);
-    };
+    // Crear el reproductor embebido usando el widget de MyRadioStream
+    const playerHTML = `
+      <div style="text-align: center;">
+        <iframe 
+          src="http://s33.myradiostream.com:18640/player" 
+          width="100%" 
+          height="180" 
+          frameborder="0" 
+          scrolling="no"
+          style="border-radius: 8px; background: rgba(0,0,0,0.3);"
+        ></iframe>
+      </div>
+    `;
 
-    playerContainerRef.current.appendChild(script);
+    playerContainerRef.current.innerHTML = playerHTML;
+    setPlayerLoaded(true);
 
-    // No hacemos cleanup para evitar el error de removeChild
   }, []);
 
   useEffect(() => {
@@ -207,22 +207,22 @@ export default function EmisionaOnline() {
                         </p>
                       </div>
                       
-                      {/* Opción alternativa con iframe */}
+                      {/* Reproductor HTML5 con la URL correcta */}
                       <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
                         <p className="text-sm text-cyan-200 mb-3">
-                          🎵 <strong>Reproductor HTML5:</strong>
+                          🎵 <strong>Reproductor en Vivo:</strong>
                         </p>
                         <audio 
                           controls 
                           className="w-full"
                           style={{filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'}}
+                          preload="none"
                         >
-                          <source src="http://radiocolmena.listen2myradio.com:8000/stream" type="audio/mpeg" />
-                          <source src="http://radiocolmena.listen2myradio.com:8000/" type="audio/mpeg" />
+                          <source src="http://s33.myradiostream.com:18640/" type="audio/mpeg" />
                           Tu navegador no soporta el elemento de audio HTML5.
                         </audio>
                         <p className="text-xs text-cyan-300 mt-2">
-                          Haz clic en Play para comenzar a escuchar
+                          ▶️ Haz clic en Play para comenzar a escuchar Radio Colmena en vivo
                         </p>
                       </div>
                     </div>
