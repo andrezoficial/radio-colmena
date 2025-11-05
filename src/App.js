@@ -45,47 +45,32 @@ export default function EmisionaOnline() {
         existingScript.remove();
       }
 
-      // Crear el contenedor específico que espera MyRadioStream
-      const playerContainer = document.getElementById('myradio-player-container');
-      if (playerContainer) {
-        playerContainer.innerHTML = `
-          <div class="myriada-widget" 
-               data-station="radiocolmena" 
-               data-widget="player" 
-               data-style="dark"
-               style="width: 100%; min-height: 100px;">
-          </div>
-        `;
-      }
-
-      // Crear y cargar el script de embed
+      // Crear y cargar el script específico de Radio Colmena
       const script = document.createElement('script');
       script.id = 'myradio-embed-script';
-      script.src = '//myradiostream.com/embed.js';
+      script.src = '//myradiostream.com/embed/radiocolmena';
       script.async = true;
       
       script.onload = () => {
-        console.log('✅ Script de MyRadioStream cargado');
+        console.log('✅ Script de Radio Colmena cargado correctamente');
         setPlayerLoaded(true);
-        
-        // Forzar la inicialización del widget después de cargar el script
-        setTimeout(() => {
-          if (window.Myriada && window.Myriada.init) {
-            window.Myriada.init();
-          }
-        }, 1000);
       };
       
       script.onerror = () => {
         console.error('❌ Error al cargar el script de MyRadioStream');
-        setPlayerLoaded(true);
+        setPlayerLoaded(false);
       };
 
-      document.head.appendChild(script);
+      // Insertar el script en el contenedor
+      const playerContainer = document.getElementById('myradio-player-container');
+      if (playerContainer) {
+        playerContainer.innerHTML = '';
+        playerContainer.appendChild(script);
+      }
     };
 
     // Esperar a que el DOM esté listo
-    const timer = setTimeout(loadPlayer, 500);
+    const timer = setTimeout(loadPlayer, 300);
 
     return () => {
       clearTimeout(timer);
@@ -212,54 +197,30 @@ export default function EmisionaOnline() {
                       {/* Contenedor específico para MyRadioStream */}
                       <div 
                         id="myradio-player-container"
-                        className="w-full min-h-[120px] bg-black/30 rounded-lg p-4 flex items-center justify-center"
+                        className="w-full min-h-[120px] bg-black/30 rounded-lg flex items-center justify-center"
                       >
-                        {!playerLoaded ? (
-                          <div className="text-center">
+                        {!playerLoaded && (
+                          <div className="text-center py-8">
                             <div className="loader mx-auto mb-4"></div>
-                            <p className="text-blue-300">Cargando reproductor de MyRadioStream...</p>
-                          </div>
-                        ) : (
-                          <div className="text-center w-full">
-                            <p className="text-green-400 mb-2">✅ Reproductor cargado</p>
-                            <p className="text-sm text-blue-300">
-                              Si no ves el reproductor, prueba la opción alternativa abajo
-                            </p>
+                            <p className="text-blue-300">Cargando reproductor...</p>
                           </div>
                         )}
-                      </div>
-
-                      {/* Opción alternativa: Iframe directo */}
-                      <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200 mb-2">
-                          🔄 <strong>Opción alternativa (si el de arriba no funciona):</strong>
-                        </p>
-                        <button
-                          onClick={() => {
-                            const container = document.getElementById('myradio-player-container');
-                            if (container) {
-                              container.innerHTML = `
-                                <iframe 
-                                  src="http://radiocolmena.on-air.fm/free/" 
-                                  style="width: 100%; height: 400px; border: none; border-radius: 10px;"
-                                  allow="autoplay"
-                                ></iframe>
-                              `;
-                            }
-                          }}
-                          className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Cargar Página Completa de MyRadioStream
-                        </button>
                       </div>
 
                       {/* Información */}
                       <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
                         <p className="text-sm text-green-200">
-                          🎧 <strong>Usando reproductor oficial de MyRadioStream</strong>
+                          🎧 <strong>Reproductor oficial de Radio Colmena</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Script: <code>//myradiostream.com/embed.js</code>
+                          Powered by MyRadioStream
+                        </p>
+                      </div>
+                      
+                      {/* Nota de ayuda */}
+                      <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
+                        <p className="text-sm text-blue-200">
+                          💡 <strong>Nota:</strong> Haz clic en el botón Play para comenzar a escuchar
                         </p>
                       </div>
                     </div>
@@ -308,7 +269,6 @@ export default function EmisionaOnline() {
               </>
             )}
 
-            {/* Resto de los tabs (se mantienen igual) */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
