@@ -41,8 +41,8 @@ export default function EmisionaOnline() {
     const loadPlayer = () => {
       // Limpiar cualquier script anterior
       const existingScript = document.getElementById('myradio-embed-script');
-      if (existingScript) {
-        existingScript.remove();
+      if (existingScript && existingScript.parentNode) {
+        existingScript.parentNode.removeChild(existingScript);
       }
 
       // Crear y cargar el script específico de Radio Colmena
@@ -61,12 +61,8 @@ export default function EmisionaOnline() {
         setPlayerLoaded(false);
       };
 
-      // Insertar el script en el contenedor
-      const playerContainer = document.getElementById('myradio-player-container');
-      if (playerContainer) {
-        playerContainer.innerHTML = '';
-        playerContainer.appendChild(script);
-      }
+      // Insertar el script en el head del documento
+      document.head.appendChild(script);
     };
 
     // Esperar a que el DOM esté listo
@@ -75,8 +71,8 @@ export default function EmisionaOnline() {
     return () => {
       clearTimeout(timer);
       const script = document.getElementById('myradio-embed-script');
-      if (script) {
-        script.remove();
+      if (script && script.parentNode) {
+        script.parentNode.removeChild(script);
       }
     };
   }, []);
