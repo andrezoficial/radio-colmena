@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Radio, Send, Music, Users, Calendar, Clock, Instagram, Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, MessageSquare } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+  Radio, Send, Music, Users, Calendar, Clock, Instagram, 
+  Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, 
+  MessageSquare, Play, Pause, AlertTriangle 
+} from 'lucide-react';
 
 export default function EmisionaOnline() {
   const [activeTab, setActiveTab] = useState('inicio');
@@ -11,6 +15,15 @@ export default function EmisionaOnline() {
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioError, setAudioError] = useState(false);
+  const audioRef = useRef(null);
+
+  const streamUrls = {
+    directStream: 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809',
+    playerPage: 'https://radiocolmena.radiostream123.com/',
+    chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617'
+  };
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -35,20 +48,36 @@ export default function EmisionaOnline() {
     { label: 'Mensajes del Mes', value: '1.2K', icon: MessageSquare }
   ];
 
-  // URLs del servidor
-  const streamUrls = {
-    playerPage: 'https://radiocolmena.radiostream123.com/',
-    chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617',
-    directStream: 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809'
-  };
-
   useEffect(() => {
     const interval = setInterval(() => {
-      setListeners(prev => prev + Math.floor(Math.random() * 3) - 1);
+      setListeners(prev => {
+        const change = Math.floor(Math.random() * 3) - 1;
+        return Math.max(100, prev + change);
+      });
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+            setAudioError(false);
+          })
+          .catch(error => {
+            console.log('Error al reproducir:', error);
+            setAudioError(true);
+            alert('No se pudo iniciar la reproducción. Haz clic en "Abrir Reproductor Oficial" como alternativa.');
+          });
+      }
+    }
+  };
 
   const submitRequest = () => {
     if (songRequest.name && songRequest.song) {
@@ -136,10 +165,10 @@ export default function EmisionaOnline() {
                     </div>
                   </div>
 
-                  {/* REPRODUCTOR OFICIAL EMBEBIDO */}
+                  {/* Reproductor HTML5 */}
                   <div className="bg-white/5 rounded-xl p-6">
                     <div className="w-full max-w-4xl mx-auto">
-                      <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                           <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full">
                             <Radio className="w-6 h-6" />
@@ -147,48 +176,70 @@ export default function EmisionaOnline() {
                           <div>
                             <h3 className="font-bold text-lg">Radio Colmena Online</h3>
                             <p className="text-sm text-blue-200">
-                              Reproduciendo desde el servidor oficial
+                              Stream directo MP3 - Sin redirecciones
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
+                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
                           <span className="text-sm text-blue-200">
-                            En vivo
+                            {isPlaying ? 'En vivo' : 'Pausado'}
                           </span>
                         </div>
                       </div>
 
-                      {/* Iframe del reproductor oficial */}
-                      <div className="w-full bg-black/30 rounded-lg overflow-hidden border border-white/20">
-                        <iframe
-                          src={streamUrls.playerPage}
-                          className="w-full h-[500px] border-0"
-                          title="Reproductor Oficial Radio Colmena"
-                          allow="autoplay"
-                          loading="lazy"
-                        />
+                      {/* Controles de audio */}
+                      <div className="flex flex-col items-center gap-4 mb-6">
+                        <button
+                          onClick={togglePlay}
+                          className={`p-6 rounded-full transition-all transform hover:scale-105 ${
+                            isPlaying 
+                              ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
+                              : 'bg-green-500 hover:bg-green-600 shadow-lg'
+                          }`}
+                        >
+                          {isPlaying ? (
+                            <Pause className="w-12 h-12 text-white" />
+                          ) : (
+                            <Play className="w-12 h-12 text-white" />
+                          )}
+                        </button>
+                        
+                        <div className="text-center">
+                          <p className="text-lg font-semibold text-blue-100">
+                            {isPlaying ? '🎵 Reproduciendo en vivo...' : '▶️ Haz clic para reproducir'}
+                          </p>
+                          {audioError && (
+                            <p className="text-sm text-red-400 mt-2">
+                              Error de reproducción. Usa el reproductor oficial como alternativa.
+                            </p>
+                          )}
+                        </div>
                       </div>
 
-                      {/* Información y controles */}
-                      <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
-                        <p className="text-sm text-green-200">
-                          ✅ <strong>Reproductor oficial funcionando</strong>
-                        </p>
-                        <p className="text-xs text-green-300 mt-1">
-                          Usando el reproductor nativo de RadioStream123
-                        </p>
-                      </div>
+                      {/* Audio element (oculto) */}
+                      <audio
+                        ref={audioRef}
+                        src={streamUrls.directStream}
+                        preload="none"
+                        onPlay={() => setIsPlaying(true)}
+                        onPause={() => setIsPlaying(false)}
+                        onEnded={() => setIsPlaying(false)}
+                        onError={() => {
+                          setAudioError(true);
+                          setIsPlaying(false);
+                        }}
+                      />
 
-                      {/* Acciones rápidas */}
-                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Información y controles adicionales */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <button
                           onClick={() => window.open(streamUrls.playerPage, '_blank')}
                           className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <span>📻</span>
-                          <span>Abrir en Página Completa</span>
+                          <span>Abrir Reproductor Oficial</span>
                         </button>
                         
                         <button
@@ -201,14 +252,13 @@ export default function EmisionaOnline() {
                       </div>
 
                       {/* Información técnica */}
-                      <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                      <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
                         <p className="text-sm text-blue-200 mb-2">
                           ℹ️ <strong>Información técnica:</strong>
                         </p>
                         <p className="text-xs text-blue-300">
-                          El reproductor está embebido desde <code>radiocolmena.radiostream123.com</code>. 
-                          Debido a políticas de seguridad CORS, el stream no puede reproducirse directamente 
-                          en esta página, pero funciona perfectamente a través del reproductor oficial.
+                          Usando stream directo MP3 para evitar redirecciones. 
+                          Calidad estable y menor consumo de recursos.
                         </p>
                       </div>
 
@@ -269,7 +319,7 @@ export default function EmisionaOnline() {
               </>
             )}
 
-            {/* Resto de los tabs (se mantienen igual) */}
+            {/* Resto de los tabs */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
