@@ -16,7 +16,18 @@ export default function EmisionaOnline() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [currentStream, setCurrentStream] = useState(0);
   const audioRef = useRef(null);
+
+  // Todas las URLs posibles para probar
+  const streamUrls = [
+    { url: "http://s33.myradiostream.com:18640/stream", name: "/stream" },
+    { url: "http://s33.myradiostream.com:18640/listen.mp3", name: "/listen.mp3" },
+    { url: "http://s33.myradiostream.com:18640/", name: "/ (raíz)" },
+    { url: "http://s33.myradiostream.com:18640/;", name: "/;" },
+    { url: "http://s33.myradiostream.com:18640/stream.mp3", name: "/stream.mp3" },
+    { url: "http://s33.myradiostream.com:18640/listen", name: "/listen" }
+  ];
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -49,10 +60,24 @@ export default function EmisionaOnline() {
       } else {
         audioRef.current.play().catch(error => {
           console.log('Error al reproducir:', error);
-          alert('No se pudo conectar a la radio. Verifica que estés transmitiendo desde Mixxx.');
+          alert(`No se pudo conectar con ${streamUrls[currentStream].name}. Probaremos otra URL.`);
+          tryNextStream();
         });
       }
       setIsPlaying(!isPlaying);
+    }
+  };
+
+  const tryNextStream = () => {
+    if (currentStream < streamUrls.length - 1) {
+      setCurrentStream(prev => prev + 1);
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.play().catch(console.error);
+        }
+      }, 1000);
+    } else {
+      alert('Se probaron todas las URLs posibles. Verifica que Mixxx esté transmitiendo.');
     }
   };
 
@@ -61,6 +86,17 @@ export default function EmisionaOnline() {
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
+    }
+  };
+
+  const changeStream = (index) => {
+    setCurrentStream(index);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setTimeout(() => {
+        audioRef.current.play().catch(console.error);
+      }, 500);
     }
   };
 
@@ -153,7 +189,7 @@ export default function EmisionaOnline() {
                     </div>
                   </div>
 
-                  {/* REPRODUCTOR DE AUDIO CON listen.mp3 */}
+                  {/* REPRODUCTOR DE AUDIO MEJORADO */}
                   <div className="bg-white/5 rounded-xl p-6">
                     <div className="w-full max-w-md mx-auto">
                       <div className="flex items-center justify-between mb-4">
@@ -202,42 +238,68 @@ export default function EmisionaOnline() {
                         </div>
                       </div>
 
-                      {/* Reproductor de audio con listen.mp3 */}
+                      {/* Reproductor de audio con todas las opciones */}
                       <audio
                         id="radio-stream"
                         ref={audioRef}
-                        src="http://s33.myradiostream.com:18640/listen.mp3"
+                        src={streamUrls[currentStream].url}
                         crossOrigin="anonymous"
                         onPlay={() => {
                           setIsPlaying(true);
-                          console.log('🎵 Reproduciendo radio...');
+                          console.log('🎵 Reproduciendo:', streamUrls[currentStream].url);
                         }}
                         onPause={() => setIsPlaying(false)}
                         onError={(e) => {
                           console.error('Error del reproductor:', e);
                           setIsPlaying(false);
-                          alert('No se pudo conectar a la radio. Verifica que estés transmitiendo desde Mixxx.');
                         }}
-                        onLoadStart={() => console.log('🔄 Cargando stream...')}
-                        onCanPlay={() => console.log('✅ Stream listo para reproducir')}
+                        onLoadStart={() => console.log('🔄 Cargando:', streamUrls[currentStream].url)}
+                        onCanPlay={() => console.log('✅ Listo:', streamUrls[currentStream].url)}
                       />
                       
                       {/* Indicador de estado */}
                       <div className="flex items-center gap-2 mt-3">
                         <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
                         <span className="text-sm text-blue-200">
-                          {isPlaying ? 'Conectado - Transmisión en vivo' : 'Desconectado - Haz clic en Play'}
+                          {isPlaying ? 'Conectado - Transmisión en vivo' : `Desconectado - URL: ${streamUrls[currentStream].name}`}
                         </span>
                       </div>
 
-                      {/* Información de conexión */}
+                      {/* Selector de URLs */}
                       <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200">
-                          📡 <strong>Conectado a:</strong> http://s33.myradiostream.com:18640/listen.mp3
+                        <p className="text-sm text-blue-200 mb-2">
+                          🔄 Selecciona la URL correcta:
                         </p>
-                        <p className="text-xs text-blue-300 mt-1">
-                          Si no funciona, verifica que Mixxx esté transmitiendo y el servidor esté online.
+                        <div className="grid grid-cols-2 gap-2">
+                          {streamUrls.map((stream, index) => (
+                            <button
+                              key={index}
+                              onClick={() => changeStream(index)}
+                              className={`px-2 py-1 rounded text-xs ${
+                                currentStream === index
+                                  ? 'bg-cyan-500 text-white'
+                                  : 'bg-white/10 hover:bg-white/20'
+                              }`}
+                            >
+                              {stream.name}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-xs text-blue-300 mt-2">
+                          Actual: <strong>{streamUrls[currentStream].url}</strong>
                         </p>
+                      </div>
+
+                      {/* Información de ayuda */}
+                      <div className="mt-3 p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                        <p className="text-sm text-yellow-200">
+                          💡 <strong>Solución:</strong> Si ninguna URL funciona, verifica:
+                        </p>
+                        <ul className="text-xs text-yellow-200 mt-1 list-disc list-inside">
+                          <li>Que Mixxx esté transmitiendo (botón Broadcast en verde)</li>
+                          <li>Que el servidor s33.myradiostream.com esté online</li>
+                          <li>Que el firewall permita la conexión</li>
+                        </ul>
                       </div>
                     </div>
                   </div>
@@ -285,6 +347,7 @@ export default function EmisionaOnline() {
               </>
             )}
 
+            {/* Resto de los tabs se mantienen igual */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
