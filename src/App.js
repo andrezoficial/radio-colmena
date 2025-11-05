@@ -42,7 +42,7 @@ export default function EmisionaOnline() {
     if (!playerContainerRef.current) return;
 
     const script = document.createElement('script');
-    script.src = '//myradiostream.com/embed/radiocolmena';
+    script.src = 'https://myradiostream.com/embed/radiocolmena';
     script.async = true;
     
     script.onload = () => {
@@ -210,14 +210,20 @@ export default function EmisionaOnline() {
                       {/* Opción alternativa con iframe */}
                       <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
                         <p className="text-sm text-cyan-200 mb-3">
-                          🔄 <strong>Reproductor alternativo (iframe):</strong>
+                          🎵 <strong>Reproductor HTML5:</strong>
                         </p>
-                        <iframe 
-                          src="https://myradiostream.com/radiocolmena/player"
-                          style={{width: '100%', height: '150px', border: 'none', borderRadius: '8px'}}
-                          allow="autoplay"
-                          title="Radio Colmena Player"
-                        />
+                        <audio 
+                          controls 
+                          className="w-full"
+                          style={{filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'}}
+                        >
+                          <source src="http://radiocolmena.listen2myradio.com:8000/stream" type="audio/mpeg" />
+                          <source src="http://radiocolmena.listen2myradio.com:8000/" type="audio/mpeg" />
+                          Tu navegador no soporta el elemento de audio HTML5.
+                        </audio>
+                        <p className="text-xs text-cyan-300 mt-2">
+                          Haz clic en Play para comenzar a escuchar
+                        </p>
                       </div>
                     </div>
                   </div>
