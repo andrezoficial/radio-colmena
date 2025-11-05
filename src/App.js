@@ -16,12 +16,9 @@ export default function EmisionaOnline() {
   const audioRef = useRef(null);
   const playerContainerRef = useRef(null);
   
-  // URLs del stream - intentaremos HTTPS primero
-  const streamUrls = {
-    https: 'https://37.59.40.90:18640/;',
-    http: 'http://37.59.40.90:18640/;',
-    playerPage: 'http://radiocolmena.on-air.fm/'
-  };
+  // URL del stream HTTPS - Compatible con sitios seguros
+  const streamUrl = 'https://radiocolmena.radiostream123.com/';
+  const playerPage = 'https://radiocolmena.radiostream123.com/';
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -76,12 +73,19 @@ export default function EmisionaOnline() {
   };
 
   const togglePlay = () => {
-    // Debido a Mixed Content, redirigir al reproductor oficial
-    window.open(streamUrls.playerPage, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no');
-    
-    // Actualizar estado visual
-    setIsPlaying(true);
-    setTimeout(() => setIsPlaying(false), 2000);
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().catch(err => {
+          console.error('Error al reproducir:', err);
+          // Si falla, abrir en ventana nueva como alternativa
+          window.open(playerPage, '_blank', 'width=800,height=600,menubar=no,toolbar=no,location=no');
+        });
+        setIsPlaying(true);
+      }
+    }
   };
 
   return (
@@ -174,16 +178,17 @@ export default function EmisionaOnline() {
                         </div>
                       </div>
 
-                      {/* Reproductor de audio oculto - No usado debido a Mixed Content */}
+                      {/* Reproductor de audio embebido */}
                       <audio 
                         ref={audioRef}
                         preload="none"
                         className="hidden"
                       >
-                        <source src={streamUrls.https} type="audio/mpeg" />
+                        <source src={streamUrl} type="audio/mpeg" />
+                        Tu navegador no soporta el elemento de audio.
                       </audio>
 
-                      {/* Botón de reproducción grande - Abre ventana externa */}
+                      {/* Botón de reproducción grande */}
                       <div 
                         ref={playerContainerRef}
                         className="w-full bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-12 cursor-pointer hover:opacity-90 transition-all"
@@ -191,18 +196,27 @@ export default function EmisionaOnline() {
                       >
                         <div className="flex flex-col items-center justify-center gap-4">
                           <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-all">
-                            <div className="text-white ml-2">
-                              <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                              </svg>
-                            </div>
+                            {isPlaying ? (
+                              <div className="text-white">
+                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                                  <rect x="6" y="4" width="4" height="16" rx="1"/>
+                                  <rect x="14" y="4" width="4" height="16" rx="1"/>
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="text-white ml-2">
+                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </div>
+                            )}
                           </div>
                           <div className="text-center">
                             <h3 className="text-2xl font-bold text-white mb-2">
-                              Abrir Reproductor
+                              {isPlaying ? 'Pausar transmisión' : 'Iniciar transmisión'}
                             </h3>
                             <p className="text-blue-100">
-                              Haz clic para escuchar Radio Colmena en vivo
+                              Haz clic para {isPlaying ? 'pausar' : 'escuchar'} Radio Colmena en vivo
                             </p>
                           </div>
                         </div>
@@ -211,36 +225,30 @@ export default function EmisionaOnline() {
                       {/* Información */}
                       <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
                         <p className="text-sm text-green-200">
-                          🎧 <strong>Reproductor oficial de Radio Colmena</strong>
+                          ✅ <strong>Reproductor HTTPS Seguro</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Se abrirá en una nueva ventana para evitar problemas de seguridad
+                          Streaming en alta calidad desde servidor seguro
                         </p>
                       </div>
                       
-                      {/* Explicación del Mixed Content */}
+                      {/* Controles adicionales */}
                       <div className="mt-4 p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
                         <p className="text-sm text-blue-200 font-bold mb-2">
-                          🔒 ¿Por qué se abre en ventana nueva?
+                          🎵 Reproductor integrado
                         </p>
-                        <p className="text-xs text-blue-100 mb-2">
-                          Este sitio usa HTTPS (conexión segura), pero el servidor de streaming aún usa HTTP. 
-                          Los navegadores modernos bloquean contenido HTTP en sitios HTTPS por seguridad.
+                        <p className="text-xs text-blue-100 mb-3">
+                          Ahora puedes escuchar directamente desde esta página sin ventanas adicionales. 
+                          El servidor usa HTTPS para garantizar una experiencia segura.
                         </p>
-                        <p className="text-xs text-blue-100">
-                          Al abrir el reproductor en una ventana nueva, evitamos este problema y puedes disfrutar 
-                          de la música sin interrupciones.
-                        </p>
-                      </div>
-
-                      {/* Botón directo al reproductor */}
-                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-                        <p className="text-sm text-cyan-200 mb-3 text-center">
-                          🎵 <strong>O copia el enlace directo:</strong>
-                        </p>
-                        <div className="bg-black/30 px-4 py-2 rounded-lg text-center">
-                          <code className="text-xs text-cyan-300">http://radiocolmena.on-air.fm/</code>
-                        </div>
+                        <a 
+                          href={playerPage}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-2 px-4 rounded-lg font-semibold text-center hover:opacity-90 transition-opacity text-sm"
+                        >
+                          🚀 Abrir reproductor en ventana nueva (opcional)
+                        </a>
                       </div>
                     </div>
                   </div>
