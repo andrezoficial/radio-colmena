@@ -155,65 +155,60 @@ export default function EmisionaOnline() {
 
                   {/* REPRODUCTOR DE AUDIO */}
                   <div className="bg-white/5 rounded-xl p-6">
-                    <div className="w-full max-w-md mx-auto">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={togglePlay}
-                            className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full hover:opacity-90 transition-opacity"
-                          >
-                            {isPlaying ? 
-                              <Pause className="w-6 h-6" /> : 
-                              <Play className="w-6 h-6" />
-                            }
-                          </button>
-                          <div>
-                            <h3 className="font-bold text-lg">Radio Colmena</h3>
-                            <p className="text-sm text-blue-200">
-                              {isPlaying ? 'En vivo ahora' : 'Presiona play para escuchar'}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setIsMuted(!isMuted);
-                              if (audioRef.current) {
-                                audioRef.current.muted = !isMuted;
-                              }
-                            }}
-                            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                          >
-                            {isMuted ? 
-                              <VolumeX className="w-5 h-5" /> : 
-                              <Volume2 className="w-5 h-5" />
-                            }
-                          </button>
-                          <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.1"
-                            value={volume}
-                            onChange={handleVolumeChange}
-                            className="w-20 accent-cyan-400"
-                          />
-                        </div>
-                      </div>
+  <div className="w-full max-w-md mx-auto">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={togglePlay}
+          className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full hover:opacity-90 transition-opacity"
+        >
+          {isPlaying ? 
+            <Pause className="w-6 h-6" /> : 
+            <Play className="w-6 h-6" />
+          }
+        </button>
+        <div>
+          <h3 className="font-bold text-lg">Radio Colmena</h3>
+          <p className="text-sm text-blue-200">
+            {isPlaying ? 'En vivo ahora' : 'Presiona play para escuchar'}
+          </p>
+        </div>
+      </div>
+    </div>
 
-                      {/* Reproductor de audio oculto */}
-                      <audio
-                        id="radio-stream"
-                        ref={audioRef}
-                        src="http://s33.myradiostream.com:18640/stream"
-                        onPlay={() => setIsPlaying(true)}
-                        onPause={() => setIsPlaying(false)}
-                        onError={(e) => {
-                          console.error('Error del reproductor:', e);
-                          setIsPlaying(false);
-                        }}
-                      />
+    {/* Reproductor con múltiples opciones */}
+    <audio
+      id="radio-stream"
+      ref={audioRef}
+      src="http://s33.myradiostream.com:18640/listen.mp3"
+      crossOrigin="anonymous"
+      onPlay={() => setIsPlaying(true)}
+      onPause={() => setIsPlaying(false)}
+      onError={(e) => {
+        console.error('Error del audio:', e);
+        setIsPlaying(false);
+        // Intenta con URL alternativa
+        if (e.target.error && e.target.error.code === 4) {
+          alert('No se puede conectar al servidor de radio. Verifica que estés transmitiendo desde Mixxx.');
+        }
+      }}
+    />
+    
+    <div className="flex items-center gap-2 mt-3">
+      <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+      <span className="text-sm text-blue-200">
+        {isPlaying ? 'Conectado' : 'Haz clic en Play para conectar'}
+      </span>
+    </div>
+
+    {/* Mensaje de ayuda */}
+    <div className="mt-4 p-3 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+      <p className="text-sm text-yellow-200">
+        💡 <strong>Nota:</strong> Asegúrate de estar transmitiendo desde Mixxx para que funcione el reproductor.
+      </p>
+    </div>
+  </div>
+</div>
                       
                       {/* Indicador de estado */}
                       <div className="flex items-center gap-2 mt-3">
