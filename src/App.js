@@ -12,9 +12,12 @@ export default function EmisionaOnline() {
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
   const [playerLoaded, setPlayerLoaded] = useState(false);
-  const [showMixedContentHelp, setShowMixedContentHelp] = useState(false);
-  const [workerUrl, setWorkerUrl] = useState('');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
   const playerContainerRef = useRef(null);
+  
+  // URL directa del stream de MyRadioStream
+  const streamUrl = 'http://37.59.40.90:18640/;';
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -39,21 +42,23 @@ export default function EmisionaOnline() {
     { label: 'Mensajes del Mes', value: '1.2K', icon: MessageSquare }
   ];
 
-  // Cargar el reproductor embebido de MyRadioStream
+  // Cargar el reproductor
   useEffect(() => {
     setPlayerLoaded(true);
-    // Mostrar ayuda después de 3 segundos si el reproductor no carga
-    const timer = setTimeout(() => {
-      setShowMixedContentHelp(true);
-    }, 3000);
-    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setListeners(prev => prev + Math.floor(Math.random() * 3) - 1);
     }, 5000);
-    return () => clearInterval(interval);
+    const submitRequest = () => {
+    if (songRequest.name && songRequest.song) {
+      alert('¡Solicitud enviada! La escucharemos pronto en Radio Colmena 🎵');
+      setSongRequest({ name: '', song: '', artist: '', message: '' });
+    }
+  };
+
+  return () => clearInterval(interval);
   }, []);
 
   const sendMessage = () => {
@@ -65,10 +70,14 @@ export default function EmisionaOnline() {
     }
   };
 
-  const submitRequest = () => {
-    if (songRequest.name && songRequest.song) {
-      alert('¡Solicitud enviada! La escucharemos pronto en Radio Colmena 🎵');
-      setSongRequest({ name: '', song: '', artist: '', message: '' });
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
     }
   };
 
@@ -138,7 +147,7 @@ export default function EmisionaOnline() {
                     </div>
                   </div>
 
-                  {/* REPRODUCTOR EMBEBIDO DE MYRADIOSTREAM */}
+                  {/* REPRODUCTOR PERSONALIZADO SIMPLE */}
                   <div className="bg-white/5 rounded-xl p-6">
                     <div className="w-full max-w-4xl mx-auto">
                       <div className="flex items-center justify-between mb-4">
@@ -149,70 +158,60 @@ export default function EmisionaOnline() {
                           <div>
                             <h3 className="font-bold text-lg">Radio Colmena</h3>
                             <p className="text-sm text-blue-200">
-                              {playerLoaded ? 'Reproductor listo' : 'Cargando reproductor...'}
+                              {isPlaying ? '▶️ Reproduciendo en vivo' : '⏸️ Detenido'}
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${playerLoaded ? 'bg-green-400 animate-pulse' : 'bg-yellow-400'}`} />
+                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
                           <span className="text-sm text-blue-200">
-                            {playerLoaded ? 'Conectado' : 'Conectando...'}
+                            {isPlaying ? 'En vivo' : 'Detenido'}
                           </span>
                         </div>
                       </div>
 
-                      {/* CONFIGURACIÓN DEL WORKER */}
-                      <div className="mb-4 p-4 bg-purple-500/20 rounded-lg border border-purple-500/30">
-                        <p className="text-sm text-purple-200 font-bold mb-2">
-                          🔧 Configuración del Cloudflare Worker
-                        </p>
-                        <p className="text-xs text-purple-300 mb-3">
-                          Pega aquí la URL de tu Cloudflare Worker (ejemplo: https://radio-colmena-stream.andres1997rez.workers.dev/)
-                        </p>
-                        <input
-                          type="text"
-                          value={workerUrl}
-                          onChange={(e) => setWorkerUrl(e.target.value)}
-                          placeholder="https://tu-worker.workers.dev"
-                          className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-purple-500 text-white placeholder-purple-300 text-sm"
-                        />
-                        {workerUrl && (
-                          <p className="text-xs text-green-300 mt-2">
-                            ✅ Worker configurado correctamente
-                          </p>
-                        )}
-                      </div>
+                      {/* Reproductor de audio oculto */}
+                      <audio 
+                        ref={audioRef}
+                        preload="none"
+                        className="hidden"
+                      >
+                        <source src={streamUrl} type="audio/mpeg" />
+                      </audio>
 
-                      {/* Contenedor para el reproductor */}
+                      {/* Botón de reproducción grande */}
                       <div 
                         ref={playerContainerRef}
-                        className="w-full min-h-[400px] bg-black/30 rounded-lg p-4"
+                        className="w-full bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-12 cursor-pointer hover:opacity-90 transition-all"
+                        onClick={togglePlay}
                       >
-                        {workerUrl ? (
+                        <div className="flex flex-col items-center justify-center gap-4">
+                          <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-all">
+                            {isPlaying ? (
+                              <div className="text-white">
+                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                                  <rect x="6" y="4" width="4" height="16" rx="1"/>
+                                  <rect x="14" y="4" width="4" height="16" rx="1"/>
+                                </svg>
+                              </div>
+                            ) : (
+                              <div className="text-white ml-2">
+                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 5v14l11-7z"/>
+                                </svg>
+                              </div>
+                            )}
+                          </div>
                           <div className="text-center">
-                            <iframe 
-                              src={workerUrl}
-                              width="100%" 
-                              height="400" 
-                              frameBorder="0" 
-                              scrolling="no"
-                              style={{borderRadius: '8px', background: 'rgba(0,0,0,0.3)'}}
-                              title="Radio Colmena Player"
-                              allow="autoplay"
-                            />
-                          </div>
-                        ) : (
-                          <div className="text-center py-20">
-                            <Radio className="w-16 h-16 text-cyan-400 mx-auto mb-4 animate-pulse" />
-                            <p className="text-lg text-cyan-400 font-bold mb-2">
-                              👆 Configura tu Cloudflare Worker arriba
-                            </p>
-                            <p className="text-sm text-blue-300">
-                              Sigue las instrucciones en la guía para crear tu Worker
+                            <h3 className="text-2xl font-bold text-white mb-2">
+                              {isPlaying ? 'Pausar transmisión' : 'Iniciar transmisión'}
+                            </h3>
+                            <p className="text-blue-100">
+                              Haz clic para {isPlaying ? 'pausar' : 'escuchar'} Radio Colmena en vivo
                             </p>
                           </div>
-                        )}
+                        </div>
                       </div>
 
                       {/* Información */}
@@ -221,70 +220,43 @@ export default function EmisionaOnline() {
                           🎧 <strong>Reproductor oficial de Radio Colmena</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Usando Cloudflare Worker - 100% HTTPS seguro ✅
+                          Streaming directo desde MyRadioStream
                         </p>
                       </div>
                       
-                      {/* Guía rápida */}
-                      <div className="mt-4 p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200 font-bold mb-2">
-                          📚 Guía Rápida: Crear tu Cloudflare Worker
+                      {/* Advertencia de Mixed Content */}
+                      <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
+                        <p className="text-sm text-yellow-200 font-bold mb-2">
+                          ⚠️ Si el audio no se reproduce, sigue estos pasos:
                         </p>
-                        <ol className="text-xs text-blue-300 space-y-2 list-decimal list-inside">
-                          <li>Ve a <a href="https://cloudflare.com" target="_blank" rel="noopener noreferrer" className="underline text-cyan-400">cloudflare.com</a> y crea una cuenta gratis</li>
-                          <li>En el dashboard, ve a <strong>Workers & Pages</strong></li>
-                          <li>Haz clic en <strong>Create Application</strong> → <strong>Create Worker</strong></li>
-                          <li>Dale un nombre y haz clic en <strong>Deploy</strong></li>
-                          <li>Haz clic en <strong>Edit Code</strong> y pega el código del worker</li>
-                          <li>Guarda y copia la URL que te dan</li>
-                          <li>Pega esa URL en el campo de arriba ☝️</li>
+                        <ol className="text-xs text-yellow-100 space-y-1 list-decimal list-inside">
+                          <li>Haz clic en el icono del <strong>candado 🔒</strong> en la barra de direcciones</li>
+                          <li>Busca la opción <strong>"Configuración del sitio"</strong> o <strong>"Site settings"</strong></li>
+                          <li>En <strong>"Contenido no seguro"</strong>, selecciona <strong>"Permitir"</strong></li>
+                          <li>Recarga la página (F5) y haz clic en Play</li>
                         </ol>
-                        <div className="mt-3 p-2 bg-black/30 rounded">
-                          <p className="text-xs text-yellow-300 mb-1">💡 Código del Worker (cópialo):</p>
-                          <code className="text-xs text-green-300 block overflow-x-auto">
-                            Ver el código completo en el mensaje anterior
-                          </code>
-                        </div>
+                        <p className="text-xs text-yellow-300 mt-2 italic">
+                          💡 Esto solo es necesario hacerlo una vez. Tu navegador recordará la configuración.
+                        </p>
                       </div>
-                      
-                      {/* Instrucciones detalladas para Mixed Content - Solo se muestra si NO hay worker configurado */}
-                      {showMixedContentHelp && !workerUrl && (
-                        <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg border-2 border-yellow-500/50">
-                          <p className="text-sm text-yellow-200 font-bold mb-3">
-                            ⚠️ Configura el Cloudflare Worker para solucionar el problema de HTTPS
-                          </p>
-                          <p className="text-xs text-yellow-300">
-                            Sigue la guía de arriba para crear tu Worker y pegar la URL en el campo morado.
-                            Esto solucionará el problema de Mixed Content de forma permanente.
-                          </p>
-                          <button
-                            onClick={() => setShowMixedContentHelp(false)}
-                            className="mt-3 text-xs text-yellow-400 hover:text-yellow-200 underline"
-                          >
-                            Cerrar
-                          </button>
-                        </div>
-                      )}
-                      
-                      {/* Enlace alternativo */}
-                      {workerUrl && (
-                        <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-                          <p className="text-sm text-cyan-200 mb-3">
-                            🎵 <strong>¿Prefieres una ventana separada?</strong>
-                          </p>
-                          <a 
-                            href={workerUrl}
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 px-6 rounded-lg font-bold text-center hover:opacity-90 transition-opacity"
-                          >
-                            🚀 Abrir Reproductor en Nueva Ventana
-                          </a>
-                          <p className="text-xs text-cyan-300 mt-2 text-center">
-                            Abre el reproductor completo en una ventana separada
-                          </p>
-                        </div>
-                      )}
+
+                      {/* Alternativa: Abrir en nueva ventana */}
+                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+                        <p className="text-sm text-cyan-200 mb-3">
+                          🎵 <strong>Opción alternativa:</strong>
+                        </p>
+                        <a 
+                          href="http://radiocolmena.on-air.fm/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 px-6 rounded-lg font-bold text-center hover:opacity-90 transition-opacity"
+                        >
+                          🚀 Abrir Reproductor Oficial en Nueva Ventana
+                        </a>
+                        <p className="text-xs text-cyan-300 mt-2 text-center">
+                          Abre la página oficial de MyRadioStream con el reproductor completo
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
