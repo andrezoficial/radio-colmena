@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Radio, Send, Music, Users, Calendar, Clock, Instagram, Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, MessageSquare } from 'lucide-react';
 
 export default function EmisionaOnline() {
@@ -11,14 +11,6 @@ export default function EmisionaOnline() {
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
-  const [playerLoaded, setPlayerLoaded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
-  const playerContainerRef = useRef(null);
-  
-  // URL del stream correcta extraída del código HTML
-  const streamUrl = 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809';
-  const playerPage = 'https://radiocolmena.radiostream123.com/';
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -43,10 +35,12 @@ export default function EmisionaOnline() {
     { label: 'Mensajes del Mes', value: '1.2K', icon: MessageSquare }
   ];
 
-  // Cargar el reproductor
-  useEffect(() => {
-    setPlayerLoaded(true);
-  }, []);
+  // URLs del servidor
+  const streamUrls = {
+    playerPage: 'https://radiocolmena.radiostream123.com/',
+    chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617',
+    directStream: 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809'
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,28 +66,8 @@ export default function EmisionaOnline() {
     }
   };
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        // Intentar reproducir con manejo de errores mejorado
-        const playPromise = audioRef.current.play();
-        
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch(err => {
-              console.error('Error al reproducir:', err);
-              // Si falla la reproducción automática, abrir ventana nueva
-              alert('Por favor, permite la reproducción de audio o usa el botón de abrir en ventana nueva');
-            });
-        }
-      }
-    }
+  const openChat = () => {
+    window.open(streamUrls.chat, 'ChatWindow', 'location=no,width=250,height=660');
   };
 
   return (
@@ -162,7 +136,7 @@ export default function EmisionaOnline() {
                     </div>
                   </div>
 
-                  {/* REPRODUCTOR PERSONALIZADO SIMPLE */}
+                  {/* REPRODUCTOR OFICIAL EMBEBIDO */}
                   <div className="bg-white/5 rounded-xl p-6">
                     <div className="w-full max-w-4xl mx-auto">
                       <div className="flex items-center justify-between mb-4">
@@ -171,107 +145,83 @@ export default function EmisionaOnline() {
                             <Radio className="w-6 h-6" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-lg">Radio Colmena</h3>
+                            <h3 className="font-bold text-lg">Radio Colmena Online</h3>
                             <p className="text-sm text-blue-200">
-                              {isPlaying ? '▶️ Reproduciendo en vivo' : '⏸️ Detenido'}
+                              Reproduciendo desde el servidor oficial
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+                          <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
                           <span className="text-sm text-blue-200">
-                            {isPlaying ? 'En vivo' : 'Detenido'}
+                            En vivo
                           </span>
                         </div>
                       </div>
 
-                      {/* Reproductor de audio embebido */}
-                      <audio 
-                        ref={audioRef}
-                        preload="metadata"
-                        crossOrigin="anonymous"
-                        className="hidden"
-                      >
-                        <source src={streamUrl} type="audio/mpeg" />
-                        Tu navegador no soporta el elemento de audio.
-                      </audio>
-
-                      {/* Botón de reproducción grande */}
-                      <div 
-                        ref={playerContainerRef}
-                        className="w-full bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-12 cursor-pointer hover:opacity-90 transition-all"
-                        onClick={togglePlay}
-                      >
-                        <div className="flex flex-col items-center justify-center gap-4">
-                          <div className="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-all">
-                            {isPlaying ? (
-                              <div className="text-white">
-                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                  <rect x="6" y="4" width="4" height="16" rx="1"/>
-                                  <rect x="14" y="4" width="4" height="16" rx="1"/>
-                                </svg>
-                              </div>
-                            ) : (
-                              <div className="text-white ml-2">
-                                <svg className="w-16 h-16" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 5v14l11-7z"/>
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                          <div className="text-center">
-                            <h3 className="text-2xl font-bold text-white mb-2">
-                              {isPlaying ? 'Pausar transmisión' : 'Iniciar transmisión'}
-                            </h3>
-                            <p className="text-blue-100">
-                              Haz clic para {isPlaying ? 'pausar' : 'escuchar'} Radio Colmena en vivo
-                            </p>
-                          </div>
-                        </div>
+                      {/* Iframe del reproductor oficial */}
+                      <div className="w-full bg-black/30 rounded-lg overflow-hidden border border-white/20">
+                        <iframe
+                          src={streamUrls.playerPage}
+                          className="w-full h-[500px] border-0"
+                          title="Reproductor Oficial Radio Colmena"
+                          allow="autoplay"
+                          loading="lazy"
+                        />
                       </div>
 
-                      {/* Información */}
+                      {/* Información y controles */}
                       <div className="mt-4 p-3 bg-green-500/20 rounded-lg border border-green-500/30">
                         <p className="text-sm text-green-200">
-                          ✅ <strong>Reproductor HTTPS Seguro</strong>
+                          ✅ <strong>Reproductor oficial funcionando</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Streaming desde uk17freenew.listen2myradio.com
+                          Usando el reproductor nativo de RadioStream123
                         </p>
                       </div>
-                      
-                      {/* Nota importante */}
-                      <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg border border-yellow-500/30">
-                        <p className="text-sm text-yellow-200 font-bold mb-2">
-                          ⚠️ Nota importante
-                        </p>
-                        <p className="text-xs text-yellow-100 mb-2">
-                          Algunos navegadores bloquean la reproducción automática de audio. Si no escuchas nada:
-                        </p>
-                        <ul className="text-xs text-yellow-100 list-disc list-inside space-y-1">
-                          <li>Asegúrate de hacer clic en el botón Play</li>
-                          <li>Verifica que el volumen de tu dispositivo esté activo</li>
-                          <li>Si persiste el problema, usa el botón "Abrir en ventana nueva"</li>
-                        </ul>
-                      </div>
-                      
-                      {/* Controles adicionales */}
-                      <div className="mt-4 p-4 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200 font-bold mb-3">
-                          🎵 Opciones de reproducción
-                        </p>
-                        <a 
-                          href={playerPage}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 px-4 rounded-lg font-semibold text-center hover:opacity-90 transition-opacity"
+
+                      {/* Acciones rápidas */}
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <button
+                          onClick={() => window.open(streamUrls.playerPage, '_blank')}
+                          className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                         >
-                          🚀 Abrir reproductor oficial en ventana nueva
-                        </a>
-                        <p className="text-xs text-blue-300 mt-2 text-center">
-                          Garantiza la mejor experiencia de audio
+                          <span>📻</span>
+                          <span>Abrir en Página Completa</span>
+                        </button>
+                        
+                        <button
+                          onClick={openChat}
+                          className="px-4 py-3 bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <span>💬</span>
+                          <span>Abrir Chat en Vivo</span>
+                        </button>
+                      </div>
+
+                      {/* Información técnica */}
+                      <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                        <p className="text-sm text-blue-200 mb-2">
+                          ℹ️ <strong>Información técnica:</strong>
                         </p>
+                        <p className="text-xs text-blue-300">
+                          El reproductor está embebido desde <code>radiocolmena.radiostream123.com</code>. 
+                          Debido a políticas de seguridad CORS, el stream no puede reproducirse directamente 
+                          en esta página, pero funciona perfectamente a través del reproductor oficial.
+                        </p>
+                      </div>
+
+                      {/* Enlace directo para apps externas */}
+                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+                        <p className="text-sm text-cyan-200 mb-2">
+                          🔗 <strong>Para apps externas (VLC, Winamp, etc.):</strong>
+                        </p>
+                        <div className="bg-black/30 px-4 py-3 rounded-lg">
+                          <code className="text-xs text-cyan-300 break-all">
+                            {streamUrls.directStream}
+                          </code>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -319,6 +269,7 @@ export default function EmisionaOnline() {
               </>
             )}
 
+            {/* Resto de los tabs (se mantienen igual) */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
