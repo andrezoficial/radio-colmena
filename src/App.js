@@ -12,6 +12,7 @@ export default function EmisionaOnline() {
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
   const [playerLoaded, setPlayerLoaded] = useState(false);
+  const [showMixedContentHelp, setShowMixedContentHelp] = useState(false);
   const playerContainerRef = useRef(null);
 
   const programas = [
@@ -40,6 +41,11 @@ export default function EmisionaOnline() {
   // Cargar el reproductor embebido de MyRadioStream
   useEffect(() => {
     setPlayerLoaded(true);
+    // Mostrar ayuda después de 3 segundos si el reproductor no carga
+    const timer = setTimeout(() => {
+      setShowMixedContentHelp(true);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -158,17 +164,18 @@ export default function EmisionaOnline() {
                       {/* Contenedor para el reproductor de MyRadioStream */}
                       <div 
                         ref={playerContainerRef}
-                        className="w-full min-h-[200px] bg-black/30 rounded-lg p-4"
+                        className="w-full min-h-[400px] bg-black/30 rounded-lg p-4"
                       >
                         <div className="text-center">
                           <iframe 
-                            src="http://s33.myradiostream.com:18640/player" 
+                            src="http://radiocolmena.on-air.fm/" 
                             width="100%" 
-                            height="180" 
+                            height="400" 
                             frameBorder="0" 
                             scrolling="no"
                             style={{borderRadius: '8px', background: 'rgba(0,0,0,0.3)'}}
                             title="Radio Colmena Player"
+                            allow="autoplay"
                           />
                         </div>
                       </div>
@@ -179,36 +186,61 @@ export default function EmisionaOnline() {
                           🎧 <strong>Reproductor oficial de Radio Colmena</strong>
                         </p>
                         <p className="text-xs text-green-300 mt-1">
-                          Powered by MyRadioStream
+                          Página de destino personalizada - radiocolmena.on-air.fm
                         </p>
                       </div>
                       
-                      {/* Nota de ayuda */}
-                      <div className="mt-4 p-3 bg-blue-500/20 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200">
-                          💡 <strong>Nota:</strong> Haz clic en el botón Play para comenzar a escuchar
-                        </p>
-                        <p className="text-xs text-blue-300 mt-2">
-                          Si no aparece el reproductor después de unos segundos, intenta recargar la página
-                        </p>
-                      </div>
+                      {/* Instrucciones detalladas para Mixed Content - Solo se muestra después de 3 segundos */}
+                      {showMixedContentHelp && (
+                        <div className="mt-4 p-4 bg-yellow-500/20 rounded-lg border-2 border-yellow-500/50 animate-pulse">
+                          <p className="text-sm text-yellow-200 font-bold mb-3">
+                            ⚠️ ¿El reproductor no aparece? Sigue estos pasos:
+                          </p>
+                          <div className="space-y-2 text-xs text-yellow-100">
+                            <div className="bg-black/30 p-3 rounded">
+                              <p className="font-semibold mb-1">🔒 Paso 1: Encuentra el candado</p>
+                              <p>Busca el icono de candado 🔒 en la barra de direcciones de tu navegador (junto a la URL)</p>
+                            </div>
+                            <div className="bg-black/30 p-3 rounded">
+                              <p className="font-semibold mb-1">🖱️ Paso 2: Haz clic en el candado</p>
+                              <p>Se abrirá un menú con opciones de seguridad del sitio</p>
+                            </div>
+                            <div className="bg-black/30 p-3 rounded">
+                              <p className="font-semibold mb-1">✅ Paso 3: Permite el contenido</p>
+                              <p>Busca la opción "Permitir contenido no seguro" o "Allow insecure content" y actívala</p>
+                            </div>
+                            <div className="bg-black/30 p-3 rounded">
+                              <p className="font-semibold mb-1">🔄 Paso 4: Recarga la página</p>
+                              <p>Presiona F5 o el botón de recargar para que el reproductor aparezca</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-yellow-300 mt-3 italic">
+                            * Este paso solo es necesario la primera vez. Tu navegador recordará tu preferencia.
+                          </p>
+                          <button
+                            onClick={() => setShowMixedContentHelp(false)}
+                            className="mt-3 text-xs text-yellow-400 hover:text-yellow-200 underline"
+                          >
+                            Cerrar ayuda
+                          </button>
+                        </div>
+                      )}
                       
-                      {/* Reproductor HTML5 con la URL correcta */}
+                      {/* Enlace alternativo */}
                       <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
                         <p className="text-sm text-cyan-200 mb-3">
-                          🎵 <strong>Reproductor en Vivo:</strong>
+                          🎵 <strong>¿No carga el reproductor?</strong>
                         </p>
-                        <audio 
-                          controls 
-                          className="w-full"
-                          style={{filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))'}}
-                          preload="none"
+                        <a 
+                          href="http://radiocolmena.on-air.fm/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 px-6 rounded-lg font-bold text-center hover:opacity-90 transition-opacity"
                         >
-                          <source src="http://s33.myradiostream.com:18640/" type="audio/mpeg" />
-                          Tu navegador no soporta el elemento de audio HTML5.
-                        </audio>
-                        <p className="text-xs text-cyan-300 mt-2">
-                          ▶️ Haz clic en Play para comenzar a escuchar Radio Colmena en vivo
+                          🚀 Abrir Reproductor en Nueva Ventana
+                        </a>
+                        <p className="text-xs text-cyan-300 mt-2 text-center">
+                          Abre el reproductor completo en una ventana separada
                         </p>
                       </div>
                     </div>
@@ -464,29 +496,6 @@ export default function EmisionaOnline() {
           <p className="text-sm text-blue-300 mt-2">Transmitiendo música desde Colombia para el mundo 🌎</p>
         </div>
       </footer>
-
-      {/* Estilos para el loader */}
-      <style jsx>{`
-        .loader {
-          width: 48px;
-          height: 48px;
-          border: 5px solid #FFF;
-          border-bottom-color: transparent;
-          border-radius: 50%;
-          display: inline-block;
-          box-sizing: border-box;
-          animation: rotation 1s linear infinite;
-        }
-
-        @keyframes rotation {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
     </div>
   );
 }
