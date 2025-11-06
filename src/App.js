@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Radio, Send, Music, Users, Calendar, Clock, Instagram, 
   Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp, 
-  MessageSquare, Play, Pause, Volume2, VolumeX, Heart, Share
+  MessageSquare, Play, Pause, AlertTriangle 
 } from 'lucide-react';
 
 export default function EmisionaOnline() {
@@ -17,11 +17,6 @@ export default function EmisionaOnline() {
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioError, setAudioError] = useState(false);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showVolume, setShowVolume] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState('Cargando...');
-  const [isBuffering, setIsBuffering] = useState(false);
   const audioRef = useRef(null);
 
   const streamUrls = {
@@ -30,32 +25,39 @@ export default function EmisionaOnline() {
     chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617'
   };
 
-  // Efecto para el volumen
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
+  const programas = [
+    { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
+    { hora: '09:00 - 12:00', nombre: 'Éxitos del Momento', dj: 'DJ Carolina', tipo: 'Top hits' },
+    { hora: '12:00 - 15:00', nombre: 'Mediodía Musical', dj: 'DJ Santiago', tipo: 'Rock y pop' },
+    { hora: '15:00 - 18:00', nombre: 'Tarde Urbana', dj: 'DJ Laura', tipo: 'Reggaeton y urbano' },
+    { hora: '18:00 - 21:00', nombre: 'Noche de Oro', dj: 'DJ Andrés', tipo: 'Clásicos' },
+    { hora: '21:00 - 00:00', nombre: 'Zona Electrónica', dj: 'DJ Valentina', tipo: 'Electronic/Dance' }
+  ];
 
-  // Efecto para simular cambios de canción
+  const locutores = [
+    { nombre: 'DJ Mateo', programa: 'Mañanas Colmena', especialidad: 'Música variada', foto: '👨‍🎤' },
+    { nombre: 'DJ Carolina', programa: 'Éxitos del Momento', especialidad: 'Top hits internacional', foto: '👩‍🎤' },
+    { nombre: 'DJ Santiago', programa: 'Mediodía Musical', especialidad: 'Rock & Pop', foto: '👨‍🎤' },
+    { nombre: 'DJ Laura', programa: 'Tarde Urbana', especialidad: 'Música urbana', foto: '👩‍🎤' }
+  ];
+
+  const stats = [
+    { label: 'Oyentes Mensuales', value: '50K+', icon: Users },
+    { label: 'Horas al Aire', value: '24/7', icon: Clock },
+    { label: 'Países Alcanzados', value: '25+', icon: TrendingUp },
+    { label: 'Mensajes del Mes', value: '1.2K', icon: MessageSquare }
+  ];
+
   useEffect(() => {
-    const tracks = [
-      'Éxitos del Momento - Mix Top 40',
-      'Clásicos de los 80s y 90s',
-      'Música Urbana - Lo mejor del reggaeton',
-      'Rock Internacional - Los grandes éxitos',
-      'Pop Latino - Los favoritos de la radio'
-    ];
-    
     const interval = setInterval(() => {
-      if (isPlaying) {
-        const randomTrack = tracks[Math.floor(Math.random() * tracks.length)];
-        setCurrentTrack(randomTrack);
-      }
-    }, 15000);
+      setListeners(prev => {
+        const change = Math.floor(Math.random() * 3) - 1;
+        return Math.max(100, prev + change);
+      });
+    }, 5000);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, []);
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -63,48 +65,20 @@ export default function EmisionaOnline() {
         audioRef.current.pause();
         setIsPlaying(false);
       } else {
-        setIsBuffering(true);
         audioRef.current.play()
           .then(() => {
             setIsPlaying(true);
             setAudioError(false);
-            setIsBuffering(false);
           })
           .catch(error => {
             console.log('Error al reproducir:', error);
             setAudioError(true);
-            setIsBuffering(false);
+            alert('No se pudo iniciar la reproducción. Haz clic en "Abrir Reproductor Oficial" como alternativa.');
           });
       }
     }
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (newVolume > 0 && isMuted) {
-      setIsMuted(false);
-    }
-  };
-
-  // Shortcut de teclado: Espacio para play/pause
-  useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (e.code === 'Space' && !e.target.type) {
-        e.preventDefault();
-        togglePlay();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [isPlaying]);
-
-  // Resto de las funciones existentes se mantienen igual...
   const submitRequest = () => {
     if (songRequest.name && songRequest.song) {
       alert('¡Solicitud enviada! La escucharemos pronto en Radio Colmena 🎵');
@@ -125,19 +99,6 @@ export default function EmisionaOnline() {
     window.open(streamUrls.chat, 'ChatWindow', 'location=no,width=250,height=660');
   };
 
-  const shareRadio = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Radio Colmena',
-        text: 'Escucha Radio Colmena en vivo',
-        url: window.location.href
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('¡Enlace copiado al portapapeles! Comparte Radio Colmena 🎵');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 text-white">
       {/* Header */}
@@ -145,12 +106,7 @@ export default function EmisionaOnline() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className={`relative ${isPlaying ? 'animate-pulse' : ''}`}>
-                <Radio className="w-10 h-10 text-cyan-400" />
-                {isPlaying && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-ping" />
-                )}
-              </div>
+              <Radio className="w-10 h-10 text-cyan-400 animate-pulse" />
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                   Radio Colmena
@@ -175,8 +131,8 @@ export default function EmisionaOnline() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${
                   activeTab === tab
-                    ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-white shadow-lg'
-                    : 'bg-white/10 hover:bg-white/20 hover:scale-105'
+                    ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-white'
+                    : 'bg-white/10 hover:bg-white/20'
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -192,44 +148,26 @@ export default function EmisionaOnline() {
           <div className="lg:col-span-2 space-y-6">
             {activeTab === 'inicio' && (
               <>
-                {/* Player Mejorado */}
+                {/* Player */}
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
                   <div className="flex items-center gap-3 mb-6">
                     <Music className="w-6 h-6 text-cyan-400" />
                     <h2 className="text-2xl font-bold">En Vivo Ahora</h2>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-8 mb-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse"></div>
-                    <div className="relative">
-                      <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                        {isBuffering ? (
-                          <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                        ) : (
-                          <Radio className="w-16 h-16 animate-pulse" />
-                        )}
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-3xl font-bold mb-2">Radio Colmena</h3>
-                        <p className="text-xl text-blue-100">Transmisión en vivo</p>
-                      </div>
+                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-8 mb-6">
+                    <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <Radio className="w-16 h-16 animate-pulse" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-3xl font-bold mb-2">Radio Colmena</h3>
+                      <p className="text-xl text-blue-100">Transmisión en vivo</p>
                     </div>
                   </div>
 
-                  {/* Reproductor HTML5 Mejorado */}
+                  {/* Reproductor HTML5 */}
                   <div className="bg-white/5 rounded-xl p-6">
                     <div className="w-full max-w-4xl mx-auto">
-                      {/* Info del track */}
-                      <div className="text-center mb-6">
-                        <div className="flex items-center justify-center gap-2 mb-2">
-                          <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
-                          <span className="text-sm text-blue-200">{isPlaying ? 'En vivo' : 'Pausado'}</span>
-                        </div>
-                        <p className="text-lg font-semibold text-cyan-300 truncate">
-                          {currentTrack}
-                        </p>
-                      </div>
-
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                           <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full">
@@ -243,97 +181,34 @@ export default function EmisionaOnline() {
                           </div>
                         </div>
                         
-                        {/* Botones de acción rápida */}
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={shareRadio}
-                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                            title="Compartir radio"
-                          >
-                            <Share className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => window.open(streamUrls.playerPage, '_blank')}
-                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                            title="Abrir reproductor oficial"
-                          >
-                            <Heart className="w-4 h-4" />
-                          </button>
+                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
+                          <span className="text-sm text-blue-200">
+                            {isPlaying ? 'En vivo' : 'Pausado'}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Controles de audio mejorados */}
+                      {/* Controles de audio */}
                       <div className="flex flex-col items-center gap-4 mb-6">
-                        <div className="flex items-center gap-4">
-                          {/* Control de volumen */}
-                          <div className="relative">
-                            <button
-                              onClick={toggleMute}
-                              onMouseEnter={() => setShowVolume(true)}
-                              className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                            >
-                              {isMuted || volume === 0 ? (
-                                <VolumeX className="w-5 h-5" />
-                              ) : (
-                                <Volume2 className="w-5 h-5" />
-                              )}
-                            </button>
-                            
-                            {showVolume && (
-                              <div 
-                                className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black/80 backdrop-blur-lg rounded-lg p-3"
-                                onMouseLeave={() => setShowVolume(false)}
-                              >
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="1"
-                                  step="0.1"
-                                  value={volume}
-                                  onChange={handleVolumeChange}
-                                  className="w-24 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-cyan-400"
-                                />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Botón principal play/pause */}
-                          <button
-                            onClick={togglePlay}
-                            disabled={isBuffering}
-                            className={`p-6 rounded-full transition-all transform hover:scale-105 active:scale-95 ${
-                              isPlaying 
-                                ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
-                                : 'bg-green-500 hover:bg-green-600 shadow-lg'
-                            } ${isBuffering ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          >
-                            {isBuffering ? (
-                              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : isPlaying ? (
-                              <Pause className="w-8 h-8 text-white" />
-                            ) : (
-                              <Play className="w-8 h-8 text-white" />
-                            )}
-                          </button>
-
-                          {/* Botón de chat */}
-                          <button
-                            onClick={openChat}
-                            className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
-                            title="Abrir chat en vivo"
-                          >
-                            <MessageSquare className="w-5 h-5" />
-                          </button>
-                        </div>
+                        <button
+                          onClick={togglePlay}
+                          className={`p-6 rounded-full transition-all transform hover:scale-105 ${
+                            isPlaying 
+                              ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
+                              : 'bg-green-500 hover:bg-green-600 shadow-lg'
+                          }`}
+                        >
+                          {isPlaying ? (
+                            <Pause className="w-12 h-12 text-white" />
+                          ) : (
+                            <Play className="w-12 h-12 text-white" />
+                          )}
+                        </button>
                         
                         <div className="text-center">
                           <p className="text-lg font-semibold text-blue-100">
-                            {isBuffering ? '🔄 Cargando...' : 
-                             isPlaying ? '🎵 Reproduciendo en vivo...' : 
-                             '▶️ Haz clic para reproducir'}
-                          </p>
-                          <p className="text-sm text-blue-300 mt-1">
-                            Presiona <kbd className="px-2 py-1 bg-white/10 rounded text-xs">Espacio</kbd> para play/pause
+                            {isPlaying ? '🎵 Reproduciendo en vivo...' : '▶️ Haz clic para reproducir'}
                           </p>
                           {audioError && (
                             <p className="text-sm text-red-400 mt-2">
@@ -354,17 +229,14 @@ export default function EmisionaOnline() {
                         onError={() => {
                           setAudioError(true);
                           setIsPlaying(false);
-                          setIsBuffering(false);
                         }}
-                        onWaiting={() => setIsBuffering(true)}
-                        onCanPlay={() => setIsBuffering(false)}
                       />
 
-                      {/* Acciones rápidas mejoradas */}
+                      {/* Información y controles adicionales */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <button
                           onClick={() => window.open(streamUrls.playerPage, '_blank')}
-                          className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 hover:scale-105 transform transition-transform"
+                          className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <span>📻</span>
                           <span>Abrir Reproductor Oficial</span>
@@ -372,33 +244,43 @@ export default function EmisionaOnline() {
                         
                         <button
                           onClick={openChat}
-                          className="px-4 py-3 bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 hover:scale-105 transform transition-transform"
+                          className="px-4 py-3 bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <span>💬</span>
-                          <span>Chat en Vivo</span>
+                          <span>Abrir Chat en Vivo</span>
                         </button>
                       </div>
 
-                      {/* Información técnica mejorada */}
+                      {/* Información técnica */}
                       <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
                         <p className="text-sm text-blue-200 mb-2">
-                          ℹ️ <strong>Mejor experiencia de audio</strong>
+                          ℹ️ <strong>Información técnica:</strong>
                         </p>
                         <p className="text-xs text-blue-300">
-                          Stream directo MP3 • Control de volumen • Atajos de teclado • Sin redirecciones
+                          Usando stream directo MP3 para evitar redirecciones. 
+                          Calidad estable y menor consumo de recursos.
                         </p>
+                      </div>
+
+                      {/* Enlace directo para apps externas */}
+                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+                        <p className="text-sm text-cyan-200 mb-2">
+                          🔗 <strong>Para apps externas (VLC, Winamp, etc.):</strong>
+                        </p>
+                        <div className="bg-black/30 px-4 py-3 rounded-lg">
+                          <code className="text-xs text-cyan-300 break-all">
+                            {streamUrls.directStream}
+                          </code>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Stats - Con hover effects */}
+                {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {stats.map((stat, idx) => (
-                    <div 
-                      key={idx} 
-                      className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center hover:bg-white/15 transition-colors hover:scale-105 transform duration-200"
-                    >
+                    <div key={idx} className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
                       <stat.icon className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
                       <p className="text-2xl font-bold">{stat.value}</p>
                       <p className="text-xs text-blue-200">{stat.label}</p>
@@ -406,29 +288,183 @@ export default function EmisionaOnline() {
                   ))}
                 </div>
 
-                {/* Resto del contenido se mantiene igual... */}
+                {/* Social Media */}
+                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+                  <h3 className="text-xl font-bold mb-4">Síguenos en Redes</h3>
+                  <div className="flex flex-wrap gap-4">
+                    <a href="#" className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                      <Instagram className="w-5 h-5" />
+                      <span>Instagram</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-2 bg-blue-600 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                      <Facebook className="w-5 h-5" />
+                      <span>Facebook</span>
+                    </a>
+                    <a href="#" className="flex items-center gap-2 bg-sky-500 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                      <Twitter className="w-5 h-5" />
+                      <span>Twitter</span>
+                    </a>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-white/20 space-y-2">
+                    <p className="flex items-center gap-2 text-blue-200">
+                      <Mail className="w-4 h-4" />
+                      <span>contacto@radiocolmena.com</span>
+                    </p>
+                    <p className="flex items-center gap-2 text-blue-200">
+                      <Phone className="w-4 h-4" />
+                      <span>+57 300 123 4567</span>
+                    </p>
+                  </div>
+                </div>
               </>
             )}
 
-            {/* Los otros tabs se mantienen exactamente igual */}
+            {/* Resto de los tabs */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
-                {/* Contenido igual... */}
+                <div className="flex items-center gap-3 mb-6">
+                  <Calendar className="w-6 h-6 text-cyan-400" />
+                  <h2 className="text-2xl font-bold">Programación Diaria</h2>
+                </div>
+                <div className="space-y-3">
+                  {programas.map((prog, idx) => (
+                    <div key={idx} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-2 rounded-lg">
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-lg">{prog.nombre}</h3>
+                            <p className="text-sm text-blue-200">{prog.hora}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-cyan-400">{prog.dj}</p>
+                          <p className="text-xs text-blue-300">{prog.tipo}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* ... resto de tabs igual */}
+            {activeTab === 'locutores' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Mic className="w-6 h-6 text-cyan-400" />
+                  <h2 className="text-2xl font-bold">Nuestros Locutores</h2>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {locutores.map((locutor, idx) => (
+                    <div key={idx} className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-6">
+                      <div className="text-6xl mb-3 text-center">{locutor.foto}</div>
+                      <h3 className="text-xl font-bold text-center mb-2">{locutor.nombre}</h3>
+                      <p className="text-blue-100 text-center mb-1">{locutor.programa}</p>
+                      <p className="text-sm text-blue-200 text-center">{locutor.especialidad}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'solicitudes' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Music className="w-6 h-6 text-cyan-400" />
+                  <h2 className="text-2xl font-bold">Solicita tu Canción</h2>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Tu Nombre</label>
+                    <input
+                      type="text"
+                      value={songRequest.name}
+                      onChange={(e) => setSongRequest({...songRequest, name: e.target.value})}
+                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      placeholder="Escribe tu nombre"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Canción</label>
+                    <input
+                      type="text"
+                      value={songRequest.song}
+                      onChange={(e) => setSongRequest({...songRequest, song: e.target.value})}
+                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      placeholder="Nombre de la canción"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Artista</label>
+                    <input
+                      type="text"
+                      value={songRequest.artist}
+                      onChange={(e) => setSongRequest({...songRequest, artist: e.target.value})}
+                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      placeholder="Nombre del artista"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2">Mensaje (Opcional)</label>
+                    <textarea
+                      value={songRequest.message}
+                      onChange={(e) => setSongRequest({...songRequest, message: e.target.value})}
+                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300 h-24"
+                      placeholder="Dedica esta canción o envía un saludo..."
+                    />
+                  </div>
+                  <button
+                    onClick={submitRequest}
+                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                  >
+                    Enviar Solicitud
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'concursos' && (
+              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+                <div className="flex items-center gap-3 mb-6">
+                  <Gift className="w-6 h-6 text-cyan-400" />
+                  <h2 className="text-2xl font-bold">Concursos y Sorteos</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6">
+                    <h3 className="text-2xl font-bold mb-2">🎁 Concurso del Mes</h3>
+                    <p className="text-lg mb-4">Gana entradas para el concierto más esperado del año</p>
+                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                      <p className="font-semibold mb-2">Cómo participar:</p>
+                      <ol className="list-decimal list-inside space-y-1 text-sm">
+                        <li>Síguenos en todas nuestras redes sociales</li>
+                        <li>Comparte esta publicación</li>
+                        <li>Etiqueta a 3 amigos</li>
+                        <li>Escucha Radio Colmena y espera la palabra clave</li>
+                      </ol>
+                    </div>
+                    <p className="text-sm">Sorteo: 30 de Noviembre, 2025</p>
+                  </div>
+
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="font-bold mb-2">📻 Oyente del Día</h4>
+                    <p className="text-sm text-blue-200">Participa en nuestro chat y podrías ganar merchandising exclusivo de Radio Colmena</p>
+                  </div>
+
+                  <div className="bg-white/5 rounded-lg p-4">
+                    <h4 className="font-bold mb-2">🎵 Adivina la Canción</h4>
+                    <p className="text-sm text-blue-200">Todos los viernes a las 8 PM. Sé el primero en identificar la canción y gana premios</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Chat Sidebar - Mejorado */}
+          {/* Chat Sidebar */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 flex flex-col h-[calc(100vh-200px)] lg:sticky lg:top-24">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold">Chat en Vivo</h3>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-xs text-green-400">Conectado</span>
-              </div>
-            </div>
+            <h3 className="text-xl font-bold mb-4">Chat en Vivo</h3>
             
             {!userName ? (
               <div className="space-y-4">
@@ -439,11 +475,11 @@ export default function EmisionaOnline() {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && userName.trim() && setUserName(userName)}
-                  className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300 transition-colors"
+                  className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
                 />
                 <button
                   onClick={() => userName.trim() && setUserName(userName)}
-                  className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity hover:scale-105 transform"
+                  className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                 >
                   Entrar al Chat
                 </button>
@@ -452,7 +488,7 @@ export default function EmisionaOnline() {
               <>
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                   {messages.map((msg, idx) => (
-                    <div key={idx} className="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-colors">
+                    <div key={idx} className="bg-white/5 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-semibold text-cyan-400">{msg.user}</span>
                         <span className="text-xs text-blue-300">{msg.time}</span>
@@ -469,11 +505,11 @@ export default function EmisionaOnline() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Escribe un mensaje..."
-                    className="flex-1 px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300 transition-colors"
+                    className="flex-1 px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
                   />
                   <button
                     onClick={sendMessage}
-                    className="bg-gradient-to-r from-cyan-400 to-blue-600 p-2 rounded-lg hover:opacity-90 transition-opacity hover:scale-105 transform"
+                    className="bg-gradient-to-r from-cyan-400 to-blue-600 p-2 rounded-lg hover:opacity-90 transition-opacity"
                   >
                     <Send className="w-5 h-5" />
                   </button>
