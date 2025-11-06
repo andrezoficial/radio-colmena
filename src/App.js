@@ -17,13 +17,41 @@ export default function EmisionaOnline() {
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioError, setAudioError] = useState(false);
+  const [isBuffering, setIsBuffering] = useState(false);
+  const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const audioRef = useRef(null);
 
-  const streamUrls = {
-    directStream: 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=s1_22602_stream_569004243',
-    playerPage: 'https://radiocolmena.radiostream321.com/',
-    chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617'
-  };
+  // Sistema de streams principales y de respaldo
+  const streamSources = [
+    {
+      url: 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=s1_22602_stream_569004243',
+      name: 'Stream Principal 1',
+      server: 'uk14'
+    },
+    {
+      url: 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809',
+      name: 'Stream Principal 2',
+      server: 'uk17'
+    }
+  ];
+
+  const backupPlayers = [
+    {
+      url: 'https://radiocolmena.radiostream321.com/',
+      name: 'Reproductor Oficial 1'
+    },
+    {
+      url: 'https://radiocolmena.radiostream123.com/',
+      name: 'Reproductor Oficial 2'
+    }
+  ];
+
+  const chatUrls = [
+    'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617',
+    'http://uk14freenew.listen2myradio.com/chat/frame.php?frameid=3414617'
+  ];
+
+  const [currentChatIndex, setCurrentChatIndex] = useState(0);
 
   const programas = [
     { hora: '06:00 - 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
@@ -59,24 +87,49 @@ export default function EmisionaOnline() {
     return () => clearInterval(interval);
   }, []);
 
+  const tryNextStream = () => {
+    const nextIndex = (currentStreamIndex + 1) % streamSources.length;
+    setCurrentStreamIndex(nextIndex);
+    
+    if (isPlaying) {
+      setTimeout(() => {
+        togglePlay();
+      }, 1000);
+    }
+  };
+
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
         setIsPlaying(false);
+        setIsBuffering(false);
       } else {
+        setIsBuffering(true);
+        setAudioError(false);
+
+        audioRef.current.src = streamSources[currentStreamIndex].url;
         audioRef.current.play()
           .then(() => {
             setIsPlaying(true);
             setAudioError(false);
+            setIsBuffering(false);
           })
           .catch(error => {
             console.log('Error al reproducir:', error);
             setAudioError(true);
-            alert('No se pudo iniciar la reproducción. Haz clic en "Abrir Reproductor Oficial" como alternativa.');
+            setIsPlaying(false);
+            setIsBuffering(false);
+            
+            // Intentar con el siguiente stream después de 2 segundos
+            setTimeout(tryNextStream, 2000);
           });
       }
     }
+  };
+
+  const openPlayer = (url) => {
+    window.open(url, '_blank');
   };
 
   const submitRequest = () => {
@@ -96,7 +149,10 @@ export default function EmisionaOnline() {
   };
 
   const openChat = () => {
-    window.open(streamUrls.chat, 'ChatWindow', 'location=no,width=250,height=660');
+    // Rotar entre los chats disponibles
+    const nextChatIndex = (currentChatIndex + 1) % chatUrls.length;
+    setCurrentChatIndex(nextChatIndex);
+    window.open(chatUrls[nextChatIndex], 'ChatWindow', 'location=no,width=250,height=660');
   };
 
   return (
@@ -157,7 +213,11 @@ export default function EmisionaOnline() {
                   
                   <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-8 mb-6">
                     <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <Radio className="w-16 h-16 animate-pulse" />
+                      {isBuffering ? (
+                        <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Radio className="w-16 h-16 animate-pulse" />
+                      )}
                     </div>
                     <div className="text-center">
                       <h3 className="text-3xl font-bold mb-2">Radio Colmena</h3>
@@ -176,7 +236,7 @@ export default function EmisionaOnline() {
                           <div>
                             <h3 className="font-bold text-lg">Radio Colmena Online</h3>
                             <p className="text-sm text-blue-200">
-                              Stream directo MP3 - Sin redirecciones
+                              {streamSources[currentStreamIndex].name} - Servidor {streamSources[currentStreamIndex].server}
                             </p>
                           </div>
                         </div>
@@ -193,13 +253,16 @@ export default function EmisionaOnline() {
                       <div className="flex flex-col items-center gap-4 mb-6">
                         <button
                           onClick={togglePlay}
+                          disabled={isBuffering}
                           className={`p-6 rounded-full transition-all transform hover:scale-105 ${
                             isPlaying 
                               ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
                               : 'bg-green-500 hover:bg-green-600 shadow-lg'
-                          }`}
+                          } ${isBuffering ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          {isPlaying ? (
+                          {isBuffering ? (
+                            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : isPlaying ? (
                             <Pause className="w-12 h-12 text-white" />
                           ) : (
                             <Play className="w-12 h-12 text-white" />
@@ -208,11 +271,13 @@ export default function EmisionaOnline() {
                         
                         <div className="text-center">
                           <p className="text-lg font-semibold text-blue-100">
-                            {isPlaying ? '🎵 Reproduciendo en vivo...' : '▶️ Haz clic para reproducir'}
+                            {isBuffering ? '🔄 Conectando...' : 
+                             isPlaying ? '🎵 Reproduciendo en vivo...' : 
+                             '▶️ Haz clic para reproducir'}
                           </p>
                           {audioError && (
-                            <p className="text-sm text-red-400 mt-2">
-                              Error de reproducción. Usa el reproductor oficial como alternativa.
+                            <p className="text-sm text-yellow-400 mt-2">
+                              Probando siguiente stream automáticamente...
                             </p>
                           )}
                         </div>
@@ -221,7 +286,6 @@ export default function EmisionaOnline() {
                       {/* Audio element (oculto) */}
                       <audio
                         ref={audioRef}
-                        src={streamUrls.directStream}
                         preload="none"
                         onPlay={() => setIsPlaying(true)}
                         onPause={() => setIsPlaying(false)}
@@ -229,13 +293,29 @@ export default function EmisionaOnline() {
                         onError={() => {
                           setAudioError(true);
                           setIsPlaying(false);
+                          setIsBuffering(false);
                         }}
+                        onWaiting={() => setIsBuffering(true)}
+                        onCanPlay={() => setIsBuffering(false)}
                       />
+
+                      {/* Información del sistema de respaldo */}
+                      <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="w-4 h-4 text-cyan-400" />
+                          <p className="text-sm text-blue-200 font-semibold">
+                            Sistema de respaldo activo: {streamSources.length} streams + {backupPlayers.length} reproductores
+                          </p>
+                        </div>
+                        <p className="text-xs text-blue-300">
+                          Si un stream falla, se probará automáticamente con el siguiente disponible
+                        </p>
+                      </div>
 
                       {/* Información y controles adicionales */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <button
-                          onClick={() => window.open(streamUrls.playerPage, '_blank')}
+                          onClick={() => openPlayer(backupPlayers[0].url)}
                           className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                         >
                           <span>📻</span>
@@ -262,15 +342,21 @@ export default function EmisionaOnline() {
                         </p>
                       </div>
 
-                      {/* Enlace directo para apps externas */}
-                      <div className="mt-4 p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-                        <p className="text-sm text-cyan-200 mb-2">
-                          🔗 <strong>Para apps externas (VLC, Winamp, etc.):</strong>
-                        </p>
-                        <div className="bg-black/30 px-4 py-3 rounded-lg">
-                          <code className="text-xs text-cyan-300 break-all">
-                            {streamUrls.directStream}
-                          </code>
+                      {/* Enlaces directos para apps externas */}
+                      <div className="mt-4 space-y-3">
+                        <div className="p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
+                          <p className="text-sm text-cyan-200 mb-2">
+                            🔗 <strong>Streams disponibles para apps externas:</strong>
+                          </p>
+                          <div className="space-y-2">
+                            {streamSources.map((stream, index) => (
+                              <div key={index} className="bg-black/30 px-3 py-2 rounded-lg">
+                                <code className="text-xs text-cyan-300 break-all">
+                                  {stream.url}
+                                </code>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -319,7 +405,7 @@ export default function EmisionaOnline() {
               </>
             )}
 
-            {/* Resto de los tabs */}
+            {/* Resto de los tabs se mantienen igual */}
             {activeTab === 'programacion' && (
               <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
                 <div className="flex items-center gap-3 mb-6">
@@ -530,4 +616,3 @@ export default function EmisionaOnline() {
     </div>
   );
 }
-//andres//
