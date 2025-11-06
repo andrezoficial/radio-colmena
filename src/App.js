@@ -20,8 +20,8 @@ export default function EmisionaOnline() {
   const audioRef = useRef(null);
 
   const streamUrls = {
-    directStream: 'https://uk17freenew.listen2myradio.com/live.mp3?typeportmount=s1_3733_stream_619888809',
-    playerPage: 'https://radiocolmena.radiostream123.com/',
+    directStream: 'https://uk14freenew.listen2myradio.com/live.mp3?typeportmount=s1_22602_stream_569004243',
+    playerPage: 'https://radiocolmena.radiostream321.com/',
     chat: 'http://uk17freenew.listen2myradio.com/chat/frame.php?frameid=3414617'
   };
 
