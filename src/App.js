@@ -156,25 +156,25 @@ export default function EmisionaOnline() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-[#0D0D0D] via-[#0D0D0D] to-[#1a1a2e] text-white">
       {/* Header */}
-      <header className="bg-black/30 backdrop-blur-lg border-b border-white/10 sticky top-0 z-50">
+      <header className="bg-[#0D0D0D] backdrop-blur-lg border-b border-[#FFC300]/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Radio className="w-10 h-10 text-cyan-400 animate-pulse" />
+              <Radio className="w-10 h-10 text-[#FFC300] animate-pulse" />
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-[#FFC300] to-[#FF2E93] bg-clip-text text-transparent">
                   Radio Colmena
                 </h1>
-                <p className="text-sm text-blue-200">Tu música favorita 24/7</p>
+                <p className="text-sm text-[#9B5DE5]">Tu música favorita 24/7</p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
-                <Users className="w-4 h-4 text-cyan-400" />
+              <div className="flex items-center gap-2 bg-[#FFFFFF]/10 px-4 py-2 rounded-lg">
+                <Users className="w-4 h-4 text-[#FFC300]" />
                 <span className="font-semibold">{listeners}</span>
-                <span className="text-sm text-blue-200">en vivo</span>
+                <span className="text-sm text-[#9B5DE5]">en vivo</span>
               </div>
             </div>
           </div>
@@ -187,8 +187,8 @@ export default function EmisionaOnline() {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap transition-all ${
                   activeTab === tab
-                    ? 'bg-gradient-to-r from-cyan-400 to-blue-600 text-white'
-                    : 'bg-white/10 hover:bg-white/20'
+                    ? 'bg-gradient-to-r from-[#FFC300] to-[#FF2E93] text-[#0D0D0D]'
+                    : 'bg-[#FFFFFF]/10 hover:bg-[#FFFFFF]/20 text-white'
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -205,45 +205,45 @@ export default function EmisionaOnline() {
             {activeTab === 'inicio' && (
               <>
                 {/* Player */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-white/20">
+                <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-[#FFC300]/20">
                   <div className="flex items-center gap-3 mb-6">
-                    <Music className="w-6 h-6 text-cyan-400" />
+                    <Music className="w-6 h-6 text-[#FFC300]" />
                     <h2 className="text-2xl font-bold">En Vivo Ahora</h2>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-8 mb-6">
-                    <div className="w-32 h-32 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-[#9B5DE5] to-[#FF2E93] rounded-xl p-8 mb-6">
+                    <div className="w-32 h-32 bg-[#FFFFFF]/20 rounded-full mx-auto mb-4 flex items-center justify-center">
                       {isBuffering ? (
-                        <div className="w-16 h-16 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-16 h-16 border-4 border-[#FFC300] border-t-transparent rounded-full animate-spin"></div>
                       ) : (
                         <Radio className="w-16 h-16 animate-pulse" />
                       )}
                     </div>
                     <div className="text-center">
                       <h3 className="text-3xl font-bold mb-2">Radio Colmena</h3>
-                      <p className="text-xl text-blue-100">Transmisión en vivo</p>
+                      <p className="text-xl text-[#FFFFFF]/90">Transmisión en vivo</p>
                     </div>
                   </div>
 
                   {/* Reproductor HTML5 */}
-                  <div className="bg-white/5 rounded-xl p-6">
+                  <div className="bg-[#FFFFFF]/5 rounded-xl p-6">
                     <div className="w-full max-w-4xl mx-auto">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
-                          <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-3 rounded-full">
+                          <div className="bg-gradient-to-r from-[#FFC300] to-[#FF2E93] p-3 rounded-full">
                             <Radio className="w-6 h-6" />
                           </div>
                           <div>
                             <h3 className="font-bold text-lg">Radio Colmena Online</h3>
-                            <p className="text-sm text-blue-200">
+                            <p className="text-sm text-[#9B5DE5]">
                               {streamSources[currentStreamIndex].name} - Servidor {streamSources[currentStreamIndex].server}
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`} />
-                          <span className="text-sm text-blue-200">
+                          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-[#00A8E8] animate-pulse' : 'bg-[#FF2E93]'}`} />
+                          <span className="text-sm text-[#9B5DE5]">
                             {isPlaying ? 'En vivo' : 'Pausado'}
                           </span>
                         </div>
@@ -256,8 +256,8 @@ export default function EmisionaOnline() {
                           disabled={isBuffering}
                           className={`p-6 rounded-full transition-all transform hover:scale-105 ${
                             isPlaying 
-                              ? 'bg-red-500 hover:bg-red-600 shadow-lg' 
-                              : 'bg-green-500 hover:bg-green-600 shadow-lg'
+                              ? 'bg-[#FF2E93] hover:bg-[#e82a84] shadow-lg' 
+                              : 'bg-[#00A8E8] hover:bg-[#0097d0] shadow-lg'
                           } ${isBuffering ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           {isBuffering ? (
@@ -270,13 +270,13 @@ export default function EmisionaOnline() {
                         </button>
                         
                         <div className="text-center">
-                          <p className="text-lg font-semibold text-blue-100">
+                          <p className="text-lg font-semibold text-[#FFFFFF]/90">
                             {isBuffering ? '🔄 Conectando...' : 
                              isPlaying ? '🎵 Reproduciendo en vivo...' : 
                              '▶️ Haz clic para reproducir'}
                           </p>
                           {audioError && (
-                            <p className="text-sm text-yellow-400 mt-2">
+                            <p className="text-sm text-[#FFC300] mt-2">
                               Probando siguiente stream automáticamente...
                             </p>
                           )}
@@ -300,14 +300,14 @@ export default function EmisionaOnline() {
                       />
 
                       {/* Información del sistema de respaldo */}
-                      <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                      <div className="mt-4 p-4 bg-[#00A8E8]/10 rounded-lg border border-[#00A8E8]/30">
                         <div className="flex items-center gap-2 mb-2">
-                          <AlertTriangle className="w-4 h-4 text-cyan-400" />
-                          <p className="text-sm text-blue-200 font-semibold">
+                          <AlertTriangle className="w-4 h-4 text-[#FFC300]" />
+                          <p className="text-sm text-[#00A8E8] font-semibold">
                             Sistema de respaldo activo: {streamSources.length} streams + {backupPlayers.length} reproductores
                           </p>
                         </div>
-                        <p className="text-xs text-blue-300">
+                        <p className="text-xs text-[#00A8E8]/80">
                           Si un stream falla, se probará automáticamente con el siguiente disponible
                         </p>
                       </div>
@@ -316,7 +316,7 @@ export default function EmisionaOnline() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <button
                           onClick={() => openPlayer(backupPlayers[0].url)}
-                          className="px-4 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                          className="px-4 py-3 bg-[#9B5DE5] rounded-lg hover:bg-[#8a4fd4] transition-colors flex items-center justify-center gap-2"
                         >
                           <span>📻</span>
                           <span>Abrir Reproductor Oficial</span>
@@ -324,7 +324,7 @@ export default function EmisionaOnline() {
                         
                         <button
                           onClick={openChat}
-                          className="px-4 py-3 bg-green-600 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                          className="px-4 py-3 bg-[#FF2E93] rounded-lg hover:bg-[#e82a84] transition-colors flex items-center justify-center gap-2"
                         >
                           <span>💬</span>
                           <span>Abrir Chat en Vivo</span>
@@ -332,11 +332,11 @@ export default function EmisionaOnline() {
                       </div>
 
                       {/* Información técnica */}
-                      <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
-                        <p className="text-sm text-blue-200 mb-2">
+                      <div className="mt-6 p-4 bg-[#00A8E8]/10 rounded-lg border border-[#00A8E8]/30">
+                        <p className="text-sm text-[#00A8E8] mb-2">
                           ℹ️ <strong>Información técnica:</strong>
                         </p>
-                        <p className="text-xs text-blue-300">
+                        <p className="text-xs text-[#00A8E8]/80">
                           Usando stream directo MP3 para evitar redirecciones. 
                           Calidad estable y menor consumo de recursos.
                         </p>
@@ -344,14 +344,14 @@ export default function EmisionaOnline() {
 
                       {/* Enlaces directos para apps externas */}
                       <div className="mt-4 space-y-3">
-                        <div className="p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/30">
-                          <p className="text-sm text-cyan-200 mb-2">
+                        <div className="p-4 bg-[#FFC300]/10 rounded-lg border border-[#FFC300]/30">
+                          <p className="text-sm text-[#FFC300] mb-2">
                             🔗 <strong>Streams disponibles para apps externas:</strong>
                           </p>
                           <div className="space-y-2">
                             {streamSources.map((stream, index) => (
-                              <div key={index} className="bg-black/30 px-3 py-2 rounded-lg">
-                                <code className="text-xs text-cyan-300 break-all">
+                              <div key={index} className="bg-[#0D0D0D] px-3 py-2 rounded-lg">
+                                <code className="text-xs text-[#FFC300] break-all">
                                   {stream.url}
                                 </code>
                               </div>
@@ -366,37 +366,37 @@ export default function EmisionaOnline() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20 text-center">
-                      <stat.icon className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+                    <div key={idx} className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-xl p-4 border border-[#FFC300]/20 text-center">
+                      <stat.icon className="w-8 h-8 text-[#FFC300] mx-auto mb-2" />
                       <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className="text-xs text-blue-200">{stat.label}</p>
+                      <p className="text-xs text-[#9B5DE5]">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Social Media */}
-                <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+                <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20">
                   <h3 className="text-xl font-bold mb-4">Síguenos en Redes</h3>
                   <div className="flex flex-wrap gap-4">
-                    <a href="#" className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-purple-600 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                    <a href="#" className="flex items-center gap-2 bg-gradient-to-r from-[#FF2E93] to-[#9B5DE5] px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
                       <Instagram className="w-5 h-5" />
                       <span>Instagram</span>
                     </a>
-                    <a href="#" className="flex items-center gap-2 bg-blue-600 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                    <a href="#" className="flex items-center gap-2 bg-[#00A8E8] px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
                       <Facebook className="w-5 h-5" />
                       <span>Facebook</span>
                     </a>
-                    <a href="#" className="flex items-center gap-2 bg-sky-500 px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
+                    <a href="#" className="flex items-center gap-2 bg-[#9B5DE5] px-6 py-3 rounded-lg hover:opacity-90 transition-opacity">
                       <Twitter className="w-5 h-5" />
                       <span>Twitter</span>
                     </a>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-white/20 space-y-2">
-                    <p className="flex items-center gap-2 text-blue-200">
+                  <div className="mt-4 pt-4 border-t border-[#FFFFFF]/20 space-y-2">
+                    <p className="flex items-center gap-2 text-[#9B5DE5]">
                       <Mail className="w-4 h-4" />
                       <span>contacto@radiocolmena.com</span>
                     </p>
-                    <p className="flex items-center gap-2 text-blue-200">
+                    <p className="flex items-center gap-2 text-[#9B5DE5]">
                       <Phone className="w-4 h-4" />
                       <span>+57 300 123 4567</span>
                     </p>
@@ -407,27 +407,27 @@ export default function EmisionaOnline() {
 
             {/* Resto de los tabs se mantienen igual */}
             {activeTab === 'programacion' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20">
                 <div className="flex items-center gap-3 mb-6">
-                  <Calendar className="w-6 h-6 text-cyan-400" />
+                  <Calendar className="w-6 h-6 text-[#FFC300]" />
                   <h2 className="text-2xl font-bold">Programación Diaria</h2>
                 </div>
                 <div className="space-y-3">
                   {programas.map((prog, idx) => (
-                    <div key={idx} className="bg-white/5 rounded-lg p-4 hover:bg-white/10 transition-colors">
+                    <div key={idx} className="bg-[#FFFFFF]/5 rounded-lg p-4 hover:bg-[#FFFFFF]/10 transition-colors">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-3">
-                          <div className="bg-gradient-to-r from-cyan-400 to-blue-600 p-2 rounded-lg">
+                          <div className="bg-gradient-to-r from-[#FFC300] to-[#FF2E93] p-2 rounded-lg">
                             <Clock className="w-5 h-5" />
                           </div>
                           <div>
                             <h3 className="font-bold text-lg">{prog.nombre}</h3>
-                            <p className="text-sm text-blue-200">{prog.hora}</p>
+                            <p className="text-sm text-[#9B5DE5]">{prog.hora}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-cyan-400">{prog.dj}</p>
-                          <p className="text-xs text-blue-300">{prog.tipo}</p>
+                          <p className="font-semibold text-[#FFC300]">{prog.dj}</p>
+                          <p className="text-xs text-[#00A8E8]">{prog.tipo}</p>
                         </div>
                       </div>
                     </div>
@@ -437,18 +437,18 @@ export default function EmisionaOnline() {
             )}
 
             {activeTab === 'locutores' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20">
                 <div className="flex items-center gap-3 mb-6">
-                  <Mic className="w-6 h-6 text-cyan-400" />
+                  <Mic className="w-6 h-6 text-[#FFC300]" />
                   <h2 className="text-2xl font-bold">Nuestros Locutores</h2>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {locutores.map((locutor, idx) => (
-                    <div key={idx} className="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-xl p-6">
+                    <div key={idx} className="bg-gradient-to-br from-[#9B5DE5] to-[#FF2E93] rounded-xl p-6">
                       <div className="text-6xl mb-3 text-center">{locutor.foto}</div>
                       <h3 className="text-xl font-bold text-center mb-2">{locutor.nombre}</h3>
-                      <p className="text-blue-100 text-center mb-1">{locutor.programa}</p>
-                      <p className="text-sm text-blue-200 text-center">{locutor.especialidad}</p>
+                      <p className="text-[#FFFFFF]/90 text-center mb-1">{locutor.programa}</p>
+                      <p className="text-sm text-[#FFFFFF]/80 text-center">{locutor.especialidad}</p>
                     </div>
                   ))}
                 </div>
@@ -456,9 +456,9 @@ export default function EmisionaOnline() {
             )}
 
             {activeTab === 'solicitudes' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20">
                 <div className="flex items-center gap-3 mb-6">
-                  <Music className="w-6 h-6 text-cyan-400" />
+                  <Music className="w-6 h-6 text-[#FFC300]" />
                   <h2 className="text-2xl font-bold">Solicita tu Canción</h2>
                 </div>
                 <div className="space-y-4">
@@ -468,7 +468,7 @@ export default function EmisionaOnline() {
                       type="text"
                       value={songRequest.name}
                       onChange={(e) => setSongRequest({...songRequest, name: e.target.value})}
-                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      className="w-full px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5]"
                       placeholder="Escribe tu nombre"
                     />
                   </div>
@@ -478,7 +478,7 @@ export default function EmisionaOnline() {
                       type="text"
                       value={songRequest.song}
                       onChange={(e) => setSongRequest({...songRequest, song: e.target.value})}
-                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      className="w-full px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5]"
                       placeholder="Nombre de la canción"
                     />
                   </div>
@@ -488,7 +488,7 @@ export default function EmisionaOnline() {
                       type="text"
                       value={songRequest.artist}
                       onChange={(e) => setSongRequest({...songRequest, artist: e.target.value})}
-                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                      className="w-full px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5]"
                       placeholder="Nombre del artista"
                     />
                   </div>
@@ -497,13 +497,13 @@ export default function EmisionaOnline() {
                     <textarea
                       value={songRequest.message}
                       onChange={(e) => setSongRequest({...songRequest, message: e.target.value})}
-                      className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300 h-24"
+                      className="w-full px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5] h-24"
                       placeholder="Dedica esta canción o envía un saludo..."
                     />
                   </div>
                   <button
                     onClick={submitRequest}
-                    className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                    className="w-full bg-gradient-to-r from-[#FFC300] to-[#FF2E93] py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
                   >
                     Enviar Solicitud
                   </button>
@@ -512,17 +512,17 @@ export default function EmisionaOnline() {
             )}
 
             {activeTab === 'concursos' && (
-              <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20">
+              <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20">
                 <div className="flex items-center gap-3 mb-6">
-                  <Gift className="w-6 h-6 text-cyan-400" />
+                  <Gift className="w-6 h-6 text-[#FFC300]" />
                   <h2 className="text-2xl font-bold">Concursos y Sorteos</h2>
                 </div>
                 
                 <div className="space-y-4">
-                  <div className="bg-gradient-to-r from-cyan-400 to-blue-600 rounded-xl p-6">
+                  <div className="bg-gradient-to-r from-[#FFC300] to-[#FF2E93] rounded-xl p-6">
                     <h3 className="text-2xl font-bold mb-2">🎁 Concurso del Mes</h3>
                     <p className="text-lg mb-4">Gana entradas para el concierto más esperado del año</p>
-                    <div className="bg-black/30 rounded-lg p-4 mb-4">
+                    <div className="bg-[#0D0D0D]/30 rounded-lg p-4 mb-4">
                       <p className="font-semibold mb-2">Cómo participar:</p>
                       <ol className="list-decimal list-inside space-y-1 text-sm">
                         <li>Síguenos en todas nuestras redes sociales</li>
@@ -534,14 +534,14 @@ export default function EmisionaOnline() {
                     <p className="text-sm">Sorteo: 30 de Noviembre, 2025</p>
                   </div>
 
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-[#FFFFFF]/5 rounded-lg p-4">
                     <h4 className="font-bold mb-2">📻 Oyente del Día</h4>
-                    <p className="text-sm text-blue-200">Participa en nuestro chat y podrías ganar merchandising exclusivo de Radio Colmena</p>
+                    <p className="text-sm text-[#9B5DE5]">Participa en nuestro chat y podrías ganar merchandising exclusivo de Radio Colmena</p>
                   </div>
 
-                  <div className="bg-white/5 rounded-lg p-4">
+                  <div className="bg-[#FFFFFF]/5 rounded-lg p-4">
                     <h4 className="font-bold mb-2">🎵 Adivina la Canción</h4>
-                    <p className="text-sm text-blue-200">Todos los viernes a las 8 PM. Sé el primero en identificar la canción y gana premios</p>
+                    <p className="text-sm text-[#9B5DE5]">Todos los viernes a las 8 PM. Sé el primero en identificar la canción y gana premios</p>
                   </div>
                 </div>
               </div>
@@ -549,23 +549,23 @@ export default function EmisionaOnline() {
           </div>
 
           {/* Chat Sidebar */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-white/20 flex flex-col h-[calc(100vh-200px)] lg:sticky lg:top-24">
+          <div className="bg-[#FFFFFF]/10 backdrop-blur-lg rounded-2xl p-6 shadow-2xl border border-[#FFC300]/20 flex flex-col h-[calc(100vh-200px)] lg:sticky lg:top-24">
             <h3 className="text-xl font-bold mb-4">Chat en Vivo</h3>
             
             {!userName ? (
               <div className="space-y-4">
-                <p className="text-blue-200">Únete a la conversación:</p>
+                <p className="text-[#9B5DE5]">Únete a la conversación:</p>
                 <input
                   type="text"
                   placeholder="Tu nombre"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && userName.trim() && setUserName(userName)}
-                  className="w-full px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                  className="w-full px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5]"
                 />
                 <button
                   onClick={() => userName.trim() && setUserName(userName)}
-                  className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+                  className="w-full bg-gradient-to-r from-[#FFC300] to-[#FF2E93] py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity"
                 >
                   Entrar al Chat
                 </button>
@@ -574,10 +574,10 @@ export default function EmisionaOnline() {
               <>
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                   {messages.map((msg, idx) => (
-                    <div key={idx} className="bg-white/5 rounded-lg p-3">
+                    <div key={idx} className="bg-[#FFFFFF]/5 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold text-cyan-400">{msg.user}</span>
-                        <span className="text-xs text-blue-300">{msg.time}</span>
+                        <span className="font-semibold text-[#FFC300]">{msg.user}</span>
+                        <span className="text-xs text-[#00A8E8]">{msg.time}</span>
                       </div>
                       <p className="text-sm">{msg.text}</p>
                     </div>
@@ -591,11 +591,11 @@ export default function EmisionaOnline() {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
                     placeholder="Escribe un mensaje..."
-                    className="flex-1 px-4 py-2 bg-white/10 rounded-lg border border-white/20 focus:outline-none focus:border-cyan-500 text-white placeholder-blue-300"
+                    className="flex-1 px-4 py-2 bg-[#FFFFFF]/10 rounded-lg border border-[#FFFFFF]/20 focus:outline-none focus:border-[#FFC300] text-white placeholder-[#9B5DE5]"
                   />
                   <button
                     onClick={sendMessage}
-                    className="bg-gradient-to-r from-cyan-400 to-blue-600 p-2 rounded-lg hover:opacity-90 transition-opacity"
+                    className="bg-gradient-to-r from-[#FFC300] to-[#FF2E93] p-2 rounded-lg hover:opacity-90 transition-opacity"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -607,10 +607,10 @@ export default function EmisionaOnline() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-black/30 backdrop-blur-lg border-t border-white/10 mt-12 py-6">
+      <footer className="bg-[#0D0D0D] backdrop-blur-lg border-t border-[#FFC300]/10 mt-12 py-6">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-blue-200">© 2025 Radio Colmena - Todos los derechos reservados</p>
-          <p className="text-sm text-blue-300 mt-2">Transmitiendo música desde Colombia para el mundo 🌎</p>
+          <p className="text-[#9B5DE5]">© 2025 Radio Colmena - Todos los derechos reservados</p>
+          <p className="text-sm text-[#00A8E8] mt-2">Transmitiendo música desde Colombia para el mundo 🌎</p>
         </div>
       </footer>
     </div>
