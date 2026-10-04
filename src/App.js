@@ -112,9 +112,11 @@ export default function EmisoraOnline() {
   const lastSent = useRef(0);
   const audioRef = useRef(null);
   const retryTimer = useRef(null);
+  const watchdogTimer = useRef(null);
   const failCount = useRef(0);
   const attemptFailed = useRef(false);
   const streamRef = useRef(0);
+  const attemptIdRef = useRef(0);
   const chatRef = useRef(null);
 
   useEffect(() => {
@@ -131,6 +133,7 @@ export default function EmisoraOnline() {
     const audio = audioRef.current;
     return () => {
       if (retryTimer.current) clearTimeout(retryTimer.current);
+      if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
       if (audio) audio.pause();
     };
   }, []);
@@ -170,50 +173,98 @@ export default function EmisoraOnline() {
     }
   };
 
-  const handleFailure = () => {
-    if (attemptFailed.current) return; // evita contar dos veces el mismo fallo
+  const clearWatchdog = () => {
+    if (watchdogTimer.current) {
+      clearTimeout(watchdogTimer.current);
+      watchdogTimer.current = null;
+    }
+  };
+
+  const scheduleRecovery = (index) => {
+    clearRetry();
+    retryTimer.current = setTimeout(() => startStream(index), 900);
+  };
+
+  const handleFailure = (sourceAttemptId = attemptIdRef.current) => {
+    // Events from an older <audio> request must never break the current one.
+    if (sourceAttemptId !== attemptIdRef.current || attemptFailed.current) return;
+
     attemptFailed.current = true;
+    clearWatchdog();
+
     const audio = audioRef.current;
     if (audio) audio.pause();
+
     setIsPlaying(false);
     setIsBuffering(false);
     failCount.current += 1;
 
-    if (failCount.current < STREAMS.length) {
+    // First retry the same server, then move to the other server.
+    if (failCount.current <= 2) {
+      setAudioError('retrying');
+      scheduleRecovery(streamRef.current);
+      return;
+    }
+
+    if (failCount.current <= 4) {
       setAudioError('retrying');
       const next = (streamRef.current + 1) % STREAMS.length;
-      retryTimer.current = setTimeout(() => startStream(next), 900);
-    } else {
-      failCount.current = 0;
-      setAudioError('failed');
+      scheduleRecovery(next);
+      return;
     }
+
+    failCount.current = 0;
+    setAudioError('failed');
   };
 
   const startStream = async (index) => {
     const audio = audioRef.current;
     if (!audio) return;
+
     clearRetry();
+    clearWatchdog();
+
+    const thisAttempt = ++attemptIdRef.current;
     attemptFailed.current = false;
     streamRef.current = index;
     setStreamIndex(index);
     setIsBuffering(true);
+    setAudioError(false);
 
-    audio.src = STREAMS[index].url;
+    // Cache-busting is useful with some browsers/proxies that keep a dead
+    // live-stream connection around after a previous failed attempt.
+    const separator = STREAMS[index].url.includes('?') ? '&' : '?';
+    audio.src = `${STREAMS[index].url}${separator}cb=${Date.now()}`;
     audio.load();
+
+    // Some radio servers never emit "error" when the connection is stuck.
+    // If playback has not actually started within 12 seconds, recover.
+    watchdogTimer.current = setTimeout(() => {
+      if (thisAttempt !== attemptIdRef.current) return;
+      if (!audioRef.current || audioRef.current.paused || audioRef.current.readyState < 3) {
+        handleFailure(thisAttempt);
+      }
+    }, 12000);
+
     try {
       await audio.play();
-      failCount.current = 0;
-      setAudioError(false);
+      if (thisAttempt !== attemptIdRef.current) return;
+      // play() resolving does not always mean audio is really flowing.
+      // onPlaying clears the watchdog once the browser confirms playback.
       setIsPlaying(true);
+      setAudioError(false);
     } catch (error) {
-      if (error && error.name === 'AbortError') return; // fue reemplazado por otro intento
-      handleFailure();
+      if (thisAttempt !== attemptIdRef.current) return;
+      if (error && error.name === 'AbortError') return;
+      handleFailure(thisAttempt);
     }
   };
 
   const stopStream = () => {
     const audio = audioRef.current;
     clearRetry();
+    clearWatchdog();
+    ++attemptIdRef.current;
     failCount.current = 0;
     attemptFailed.current = true;
     if (audio) {
@@ -240,7 +291,9 @@ export default function EmisoraOnline() {
 
   const switchStream = (index) => {
     failCount.current = 0;
-    if (isPlaying || isBuffering) {
+    clearRetry();
+    clearWatchdog();
+    if (isPlaying || isBuffering || audioError === 'retrying') {
       startStream(index);
     } else {
       streamRef.current = index;
@@ -551,9 +604,28 @@ export default function EmisoraOnline() {
                         <audio
                           ref={audioRef}
                           preload="none"
-                          onPlaying={() => { setIsPlaying(true); setIsBuffering(false); setAudioError(false); }}
+                          onPlaying={() => {
+                            clearWatchdog();
+                            attemptFailed.current = false;
+                            failCount.current = 0;
+                            setIsPlaying(true);
+                            setIsBuffering(false);
+                            setAudioError(false);
+                          }}
                           onPause={() => setIsPlaying(false)}
                           onWaiting={() => setIsBuffering(true)}
+                          onStalled={() => {
+                            setIsBuffering(true);
+                            // A live stream can stall without firing onError.
+                            clearWatchdog();
+                            watchdogTimer.current = setTimeout(() => handleFailure(attemptIdRef.current), 10000);
+                          }}
+                          onSuspend={() => {
+                            if (isPlaying) {
+                              clearWatchdog();
+                              watchdogTimer.current = setTimeout(() => handleFailure(attemptIdRef.current), 10000);
+                            }
+                          }}
                           onCanPlay={() => setIsBuffering(false)}
                           onError={handleAudioError}
                           onEnded={handleAudioError}
