@@ -45,3 +45,11 @@ npm run build
 - Programa actual: usa hora de Bogotá y ya no muestra "Mañanas" de madrugada.
 - Solicitudes: aviso en pantalla en vez de `alert()`.
 - Configuración de PostCSS alineada con Tailwind v3 y test reemplazado.
+
+## Firebase (chat y solicitudes)
+
+1. En https://console.firebase.google.com crea un proyecto → **Build → Firestore Database → Crear base de datos** (modo producción).
+2. **Reglas**: pega el contenido de `firestore.rules` y publica.
+3. **Configuración del proyecto → Tus apps → Web (</>)**: registra la app y copia los valores.
+4. Local: copia `.env.example` a `.env.local` y rellénalo. Producción: cárgalos en Vercel → Settings → Environment Variables y vuelve a desplegar.
+5. Las solicitudes llegan a la colección `requests` (se leen en la consola de Firebase); el chat usa la colección `chat`.

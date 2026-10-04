@@ -1,0 +1,30 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Chat público: todos leen, todos pueden escribir mensajes cortos, nadie edita ni borra.
+    match /chat/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['user', 'text', 'createdAt'])
+        && request.resource.data.user is string
+        && request.resource.data.user.size() > 0 && request.resource.data.user.size() <= 24
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 280
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Solicitudes: el público solo envía; tú las lees desde la consola de Firebase.
+    match /requests/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['name', 'song', 'artist', 'message', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.song is string
+        && request.resource.data.song.size() > 0 && request.resource.data.song.size() <= 100
+        && request.resource.data.artist is string && request.resource.data.artist.size() <= 100
+        && request.resource.data.message is string && request.resource.data.message.size() <= 200
+        && request.resource.data.createdAt == request.time;
+      allow read, update, delete: if false;
+    }
+  }
+}

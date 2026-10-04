@@ -5,6 +5,7 @@ import {
   MessageSquare, Play, Pause, AlertTriangle, Volume2, VolumeX,
   ExternalLink, Copy, Check, Wifi, ChevronRight
 } from 'lucide-react';
+import { firebaseEnabled, subscribeChat, sendChatMessage, sendSongRequest } from './firebase';
 
 const STREAMS = [
   {
@@ -69,7 +70,7 @@ function getCurrentProgram() {
 export default function EmisoraOnline() {
   const [activeTab, setActiveTab] = useState('inicio');
   const [listeners, setListeners] = useState(142);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState(firebaseEnabled ? [] : INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');
   const [songRequest, setSongRequest] = useState({ name: '', song: '', artist: '', message: '' });
@@ -83,6 +84,9 @@ export default function EmisoraOnline() {
   const [currentProgram, setCurrentProgram] = useState(getCurrentProgram);
   const [nameDraft, setNameDraft] = useState('');
   const [requestSent, setRequestSent] = useState(false);
+  const [requestError, setRequestError] = useState(false);
+  const [chatError, setChatError] = useState(false);
+  const lastSent = useRef(0);
   const audioRef = useRef(null);
   const retryTimer = useRef(null);
   const failCount = useRef(0);
@@ -111,7 +115,15 @@ export default function EmisoraOnline() {
 
   useEffect(() => {
     if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
-  }, [messages.length, userName]);
+  }, [messages, userName]);
+
+  useEffect(() => {
+    if (!firebaseEnabled) return undefined;
+    return subscribeChat(
+      (list) => { setMessages(list); setChatError(false); },
+      () => setChatError(true)
+    );
+  }, []);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -221,18 +233,45 @@ export default function EmisoraOnline() {
 
   const openPlayer = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
-  const submitRequest = () => {
+  const submitRequest = async () => {
     if (!songRequest.name.trim() || !songRequest.song.trim()) return;
-    setSongRequest({ name: '', song: '', artist: '', message: '' });
-    setRequestSent(true);
-    setTimeout(() => setRequestSent(false), 4000);
+    setRequestError(false);
+    try {
+      if (firebaseEnabled) {
+        await sendSongRequest({
+          name: songRequest.name.trim(),
+          song: songRequest.song.trim(),
+          artist: songRequest.artist.trim(),
+          message: songRequest.message.trim()
+        });
+      }
+      setSongRequest({ name: '', song: '', artist: '', message: '' });
+      setRequestSent(true);
+      setTimeout(() => setRequestSent(false), 4000);
+    } catch (error) {
+      setRequestError(true);
+    }
   };
-
-  const sendMessage = () => {
-    if (!newMessage.trim() || !userName.trim()) return;
-    const time = new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: TZ }).format(new Date());
-    setMessages(prev => [...prev, { user: userName.trim(), text: newMessage.trim(), time }]);
+  const sendMessage = async () => {
+    const text = newMessage.trim();
+    const user = userName.trim();
+    if (!text || !user) return;
+    if (Date.now() - lastSent.current < 2000) return; // anti-spam: 1 mensaje cada 2 s
+    lastSent.current = Date.now();
     setNewMessage('');
+
+    if (!firebaseEnabled) {
+      const time = new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: TZ }).format(new Date());
+      setMessages(prev => [...prev, { user, text, time }]);
+      return;
+    }
+    try {
+      await sendChatMessage({ user, text });
+      setChatError(false);
+    } catch (error) {
+      setNewMessage(text); // devuelve el texto para que no se pierda
+      setChatError(true);
+    }
   };
 
   const confirmName = () => {
@@ -545,6 +584,7 @@ export default function EmisoraOnline() {
                 <button onClick={submitRequest} className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#FFD23F] to-[#F0386B] px-5 py-3.5 font-black text-[#0B0D12] hover:brightness-105">
                   <Send className="h-4 w-4" /> Enviar solicitud
                 </button>
+                {requestError && <p role="alert" className="mt-3 text-center text-sm font-semibold text-amber-300">No pudimos enviar tu solicitud. Intenta de nuevo.</p>}
                 <p role="status" className={`mt-3 text-center text-sm font-semibold text-emerald-300 transition-opacity ${requestSent ? 'opacity-100' : 'opacity-0'}`}>
                   ¡Solicitud recibida! La escucharemos pronto en Radio Colmena.
                 </p>
@@ -595,8 +635,14 @@ export default function EmisoraOnline() {
               ) : (
                 <>
                   <div ref={chatRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+                    {chatError && (
+                      <p role="alert" className="rounded-xl bg-amber-500/10 p-3 text-center text-xs text-amber-200">No pudimos conectar con el chat. Intenta de nuevo en un momento.</p>
+                    )}
+                    {firebaseEnabled && !chatError && messages.length === 0 && (
+                      <p className="py-6 text-center text-sm text-white/50">Aún no hay mensajes. ¡Sé el primero en saludar!</p>
+                    )}
                     {messages.map((msg, idx) => (
-                      <div key={`${msg.time}-${idx}`} className="rounded-2xl border border-white/5 bg-white/[0.04] p-3">
+                      <div key={msg.id || `${msg.time}-${idx}`} className="rounded-2xl border border-white/5 bg-white/[0.04] p-3">
                         <div className="flex justify-between gap-2"><span className="text-sm font-bold text-[#FFD23F]">{msg.user}</span><span className="text-[10px] text-white/30">{msg.time}</span></div>
                         <p className="mt-1 text-sm leading-5 text-white/75">{msg.text}</p>
                       </div>
