@@ -14,7 +14,8 @@ const config = {
 
 // Sin variables de entorno la web funciona igual, pero el chat y las solicitudes quedan solo locales.
 export const firebaseEnabled = Boolean(config.apiKey && config.projectId);
-const db = firebaseEnabled ? getFirestore(initializeApp(config)) : null;
+export const app = firebaseEnabled ? initializeApp(config) : null;
+export const db = app ? getFirestore(app) : null;
 
 const formatTime = (date) =>
   new Intl.DateTimeFormat('es-CO', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: 'America/Bogota' }).format(date);

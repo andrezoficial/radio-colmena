@@ -3,7 +3,7 @@ import {
   Radio, Send, Music, Users, Calendar, Clock, Instagram,
   Facebook, Twitter, Mail, Phone, Gift, Mic, TrendingUp,
   MessageSquare, Play, Pause, AlertTriangle, Volume2, VolumeX,
-  ExternalLink, Copy, Check, Wifi, ChevronRight
+  ExternalLink, Copy, Check, Wifi, ChevronRight, Moon
 } from 'lucide-react';
 import { firebaseEnabled, subscribeChat, sendChatMessage, sendSongRequest } from './firebase';
 
@@ -56,6 +56,22 @@ const INITIAL_MESSAGES = [
 ];
 
 const TZ = 'America/Bogota';
+const SLEEP_OPTIONS = [0, 15, 30, 60]; // minutos; 0 = apagado
+
+// "Artista - Tema - Artista (Video Oficial)" -> { artist: 'Artista', title: 'Tema' }
+function parseSong(raw) {
+  if (!raw) return null;
+  const clean = raw.replace(/\s*[([][^)\]]*(oficial|official|video|audio|lyric|letra|visualizer)[^)\]]*[)\]]/gi, '').trim();
+  const parts = clean.split(' - ').map(s => s.trim()).filter(Boolean);
+  if (!parts.length) return null;
+  if (parts.length > 2 && parts[parts.length - 1].toLowerCase() === parts[0].toLowerCase()) parts.pop();
+  if (parts.length === 1) return { artist: '', title: parts[0] };
+  return { artist: parts[0], title: parts.slice(1).join(' - ') };
+}
+
+function formatCountdown(seconds) {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}
 
 function getBogotaHour() {
   const h = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: TZ }).format(new Date());
@@ -69,7 +85,6 @@ function getCurrentProgram() {
 
 export default function EmisoraOnline() {
   const [activeTab, setActiveTab] = useState('inicio');
-  const [listeners, setListeners] = useState(142);
   const [messages, setMessages] = useState(firebaseEnabled ? [] : INITIAL_MESSAGES);
   const [newMessage, setNewMessage] = useState('');
   const [userName, setUserName] = useState('');
@@ -80,6 +95,14 @@ export default function EmisoraOnline() {
   const [streamIndex, setStreamIndex] = useState(0);
   const [volume, setVolume] = useState(0.85);
   const [muted, setMuted] = useState(false);
+  const [sleepIdx, setSleepIdx] = useState(0);
+  const [sleepLeft, setSleepLeft] = useState(0);
+  const actions = useRef({});
+  const [nowPlaying, setNowPlaying] = useState({ live: null, listeners: null, peak: null, bitrate: null, song: '' });
+  const { live, listeners, peak, bitrate } = nowPlaying;
+  const song = live === false ? null : parseSong(nowPlaying.song);
+  const songTitle = song ? song.title : '';
+  const songArtist = song ? song.artist : '';
   const [copied, setCopied] = useState(false);
   const [currentProgram, setCurrentProgram] = useState(getCurrentProgram);
   const [nameDraft, setNameDraft] = useState('');
@@ -96,7 +119,6 @@ export default function EmisoraOnline() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setListeners(prev => Math.max(100, prev + Math.floor(Math.random() * 3) - 1));
       setCurrentProgram(getCurrentProgram());
     }, 5000);
     return () => {
@@ -202,6 +224,8 @@ export default function EmisoraOnline() {
     setIsPlaying(false);
     setIsBuffering(false);
     setAudioError(false);
+    setSleepIdx(0);
+    setSleepLeft(0);
   };
 
   const togglePlay = () => {
@@ -230,6 +254,86 @@ export default function EmisoraOnline() {
     if (!audio || !audio.getAttribute('src')) return;
     handleFailure();
   };
+
+  // Estado real del servidor (canción, oyentes, transmisión) cada 15 s
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (document.hidden) return;
+      try {
+        const res = await fetch('/api/now-playing');
+        if (!res.ok) throw new Error('sin datos');
+        const data = await res.json();
+        if (!cancelled) setNowPlaying(data);
+      } catch (error) {
+        // Sin datos la web sigue funcionando con la programación
+      }
+    };
+    load();
+    const id = setInterval(load, 15000);
+    const onVisible = () => { if (!document.hidden) load(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, []);
+
+  const cycleSleep = () => {
+    const next = (sleepIdx + 1) % SLEEP_OPTIONS.length;
+    setSleepIdx(next);
+    setSleepLeft(SLEEP_OPTIONS[next] * 60);
+  };
+
+  // Mantiene a mano las funciones actuales para los controles del sistema y el temporizador
+  useEffect(() => {
+    actions.current = { start: startStream, stop: stopStream };
+  });
+
+  // Temporizador para dormir
+  useEffect(() => {
+    if (!sleepIdx) return undefined;
+    const end = Date.now() + SLEEP_OPTIONS[sleepIdx] * 60000;
+    const id = setInterval(() => {
+      const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+      setSleepLeft(left);
+      if (left === 0) {
+        clearInterval(id);
+        actions.current.stop();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [sleepIdx]);
+
+  // Pantalla de bloqueo y notificación (Android, iOS, Chrome, Edge, Safari)
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
+    navigator.mediaSession.metadata = new window.MediaMetadata({
+      title: songTitle || currentProgram.nombre,
+      artist: songArtist || `${currentProgram.dj} · Radio Colmena`,
+      album: songTitle ? `${currentProgram.nombre} · Radio Colmena` : 'En vivo 24/7',
+      artwork: [
+        { src: '/logo192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/logo512.png', sizes: '512x512', type: 'image/png' }
+      ]
+    });
+  }, [currentProgram, songTitle, songArtist]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+  }, [isPlaying]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return undefined;
+    const ms = navigator.mediaSession;
+    const set = (name, fn) => { try { ms.setActionHandler(name, fn); } catch (e) { /* no soportado */ } };
+    set('play', () => actions.current.start(streamRef.current));
+    set('pause', () => actions.current.stop());
+    set('stop', () => actions.current.stop());
+    return () => { set('play', null); set('pause', null); set('stop', null); };
+  }, []);
 
   const openPlayer = (url) => window.open(url, '_blank', 'noopener,noreferrer');
 
@@ -290,11 +394,11 @@ export default function EmisoraOnline() {
   };
 
   const heroStats = useMemo(() => [
-    { label: 'Oyentes ahora', value: listeners, icon: Users },
-    { label: 'Al aire', value: '24/7', icon: Clock },
-    { label: 'Cobertura', value: '25+', icon: TrendingUp },
-    { label: 'Comunidad', value: '1.2K+', icon: MessageSquare }
-  ], [listeners]);
+    { label: 'Oyentes ahora', value: listeners ?? '—', icon: Users },
+    { label: 'Estado', value: live === null ? '—' : live ? 'En vivo' : 'Fuera del aire', icon: Clock },
+    { label: 'Pico de oyentes', value: peak ?? '—', icon: TrendingUp },
+    { label: 'Calidad', value: bitrate ? `${bitrate} kbps` : '—', icon: Wifi }
+  ], [listeners, live, peak, bitrate]);
 
   return (
     <div className="min-h-screen bg-[#0B0D12] text-white selection:bg-[#FFD23F]/30">
@@ -317,7 +421,7 @@ export default function EmisoraOnline() {
               </div>
             </button>
 
-            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 sm:flex">
+            <div className={`${listeners === null ? 'hidden' : 'hidden sm:flex'} items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2`}>
               <Users className="h-4 w-4 text-[#FFD23F]" />
               <span className="font-bold">{listeners}</span>
               <span className="text-xs text-white/50">escuchando</span>
@@ -350,8 +454,8 @@ export default function EmisoraOnline() {
               <div className="space-y-6">
                 <div className="hive-bg overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#161a24] to-[#0c0f15] shadow-2xl">
                   <div className="relative p-5 sm:p-8">
-                    <div className="absolute right-5 top-5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300">
-                      ● EN VIVO
+                    <div className={live === false ? 'absolute right-5 top-5 rounded-full border border-slate-400/20 bg-slate-400/10 px-3 py-1.5 text-xs font-bold text-slate-300' : 'absolute right-5 top-5 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-bold text-emerald-300'}>
+                      {live === false ? '○ FUERA DEL AIRE' : '● EN VIVO'}
                     </div>
 
                     <div className="max-w-2xl pt-7 sm:pt-3">
@@ -375,6 +479,9 @@ export default function EmisoraOnline() {
                           <div className="min-w-0">
                             <div className="text-xs font-semibold uppercase tracking-wider text-white/40">Ahora en Radio Colmena</div>
                             <div className="truncate text-xl font-extrabold">{currentProgram.nombre}</div>
+                            {song && (
+                              <div className="truncate text-sm font-semibold text-[#FFD23F]">♪ {song.artist ? `${song.artist} — ${song.title}` : song.title}</div>
+                            )}
                             <div className="text-sm text-white/50">{currentProgram.dj} · {currentProgram.tipo}</div>
                           </div>
                         </div>
@@ -416,6 +523,15 @@ export default function EmisoraOnline() {
                             onChange={e => { setMuted(false); setVolume(Number(e.target.value)); }}
                             className="hidden w-24 accent-[#FFD23F] sm:block"
                           />
+                          <button
+                            onClick={cycleSleep}
+                            title="Temporizador para dormir"
+                            aria-label={sleepIdx ? `Apagar en ${formatCountdown(sleepLeft)}. Pulsa para cambiar` : 'Temporizador para dormir'}
+                            className={`flex items-center gap-1.5 rounded-xl border px-3 py-3 text-sm font-semibold ${sleepIdx ? 'border-[#FFD23F]/40 bg-[#FFD23F]/10 text-[#FFD23F]' : 'border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white'}`}
+                          >
+                            <Moon className="h-5 w-5" />
+                            {sleepIdx ? <span className="tabular-nums">{formatCountdown(sleepLeft)}</span> : null}
+                          </button>
                         </div>
 
                         {audioError && (

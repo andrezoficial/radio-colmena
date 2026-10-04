@@ -53,3 +53,25 @@ npm run build
 3. **Configuración del proyecto → Tus apps → Web (</>)**: registra la app y copia los valores.
 4. Local: copia `.env.example` a `.env.local` y rellénalo. Producción: cárgalos en Vercel → Settings → Environment Variables y vuelve a desplegar.
 5. Las solicitudes llegan a la colección `requests` (se leen en la consola de Firebase); el chat usa la colección `chat`.
+
+## Reproductor móvil (v3.1)
+
+- Media Session: la pantalla de bloqueo y la notificación muestran el programa actual con el logo y los botones de play/pausa.
+- Temporizador para dormir: 15 / 30 / 60 min (se cambia pulsando la luna) y detiene el stream al terminar.
+
+## Estado real del servidor (v4)
+
+- `api/now-playing.js` (función de Vercel) consulta `http://uk14freenew.listen2myradio.com:22602/7.html` y entrega a la web canción actual, oyentes, pico, bitrate y estado de transmisión.
+- Si cambias de servidor, define la variable `STATS_URL` en Vercel con la nueva dirección `/7.html`.
+- En local (`npm start`) la función `/api` no existe; la web funciona igual pero sin esos datos. Para probarla en local usa `npx vercel dev`.
+
+## Panel privado (v5)
+
+Entra en `https://TU-DOMINIO/#admin` (no aparece enlazado en la web).
+
+1. Firebase → **Authentication → Comenzar → Método de acceso → Correo/contraseña → Habilitar**.
+2. **Authentication → Usuarios → Agregar usuario** (tu correo y una contraseña larga).
+3. Entra al panel con ese usuario: si aún no tienes permiso, el panel te muestra tu **UID**.
+4. Pega ese UID en `isAdmin()` de `firestore.rules` y publica las reglas.
+
+El panel permite ver solicitudes, marcarlas como "ya sonó", copiar "Artista - Canción" para buscarla en Mixxx, borrarlas y moderar el chat.
