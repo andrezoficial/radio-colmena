@@ -24,6 +24,14 @@ const BACKUP_PLAYERS = [
   { url: 'https://radiocolmena.radiostream123.com/', name: 'Reproductor oficial 2' }
 ];
 
+// Pega aquí las URLs reales de tus redes (ej. 'https://instagram.com/tu_usuario').
+// Mientras estén vacías, se muestran como "Próximamente" y no rompen el build.
+const SOCIAL_LINKS = [
+  { name: 'Instagram', icon: Instagram, url: '' },
+  { name: 'Facebook', icon: Facebook, url: '' },
+  { name: 'X / Twitter', icon: Twitter, url: '' }
+];
+
 const PROGRAMS = [
   { start: 6, end: 9, hora: '06:00 – 09:00', nombre: 'Mañanas Colmena', dj: 'DJ Mateo', tipo: 'Música variada' },
   { start: 9, end: 12, hora: '09:00 – 12:00', nombre: 'Éxitos del Momento', dj: 'DJ Carolina', tipo: 'Top hits' },
@@ -472,15 +480,18 @@ export default function EmisoraOnline() {
                 <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
                   <h2 className="text-lg font-black">Síguenos</h2>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {[
-                      ['Instagram', Instagram, 'bg-white/10 hover:bg-white/15'],
-                      ['Facebook', Facebook, 'bg-white/10 hover:bg-white/15'],
-                      ['X / Twitter', Twitter, 'bg-white/10 hover:bg-white/15']
-                    ].map(([name, Icon, color]) => (
-                      <a key={name} href="#" onClick={e => e.preventDefault()} className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold ${color} hover:opacity-90`}>
-                        <Icon className="h-4 w-4" /> {name}
-                      </a>
-                    ))}
+                    {SOCIAL_LINKS.map(({ name, icon: Icon, url }) => {
+                      const cls = 'flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-bold';
+                      return url ? (
+                        <a key={name} href={url} target="_blank" rel="noopener noreferrer" className={`${cls} hover:bg-white/15`}>
+                          <Icon className="h-4 w-4" /> {name}
+                        </a>
+                      ) : (
+                        <span key={name} title="Próximamente" className={`${cls} cursor-default opacity-60`}>
+                          <Icon className="h-4 w-4" /> {name}
+                        </span>
+                      );
+                    })}
                   </div>
                   <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-4 text-sm text-white/45">
                     <span className="flex items-center gap-2"><Mail className="h-4 w-4" /> contacto@radiocolmena.com</span>
